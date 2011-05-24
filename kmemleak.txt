@@ -1,0 +1,21 @@
+unreferenced object 0xffff880139bdfc10 (size 8):
+  comm "swapper", pid 1, jiffies 4294878042
+  hex dump (first 8 bytes):
+    63 70 75 66 72 65 71 00                          cpufreq.
+  backtrace:
+    [<ffffffff8140e986>] kmemleak_alloc+0x26/0x50
+    [<ffffffff81127953>] __kmalloc_track_caller+0x143/0x230
+    [<ffffffff81104395>] kstrdup+0x45/0x80
+    [<ffffffff8119e2cc>] sysfs_new_dirent+0x10c/0x120
+    [<ffffffff8119f132>] create_dir+0x42/0xb0
+    [<ffffffff8119f1d9>] sysfs_create_dir+0x39/0x50
+    [<ffffffff8126048b>] kobject_add_internal+0x11b/0x210
+    [<ffffffff812606a8>] kobject_add_varg+0x38/0x60
+    [<ffffffff81260723>] kobject_init_and_add+0x53/0x70
+    [<ffffffff81373552>] cpufreq_add_dev_interface+0x42/0x220
+    [<ffffffff81373cee>] cpufreq_add_dev+0x27e/0x410
+    [<ffffffff8130e636>] sysdev_driver_register+0xa6/0x130
+    [<ffffffff81371d38>] cpufreq_register_driver+0x88/0x160
+    [<ffffffff81867c8c>] acpi_cpufreq_init+0x91/0xc7
+    [<ffffffff8100904c>] do_one_initcall+0x3c/0x1d0
+    [<ffffffff8185f4e6>] kernel_init+0x150/0x1a6

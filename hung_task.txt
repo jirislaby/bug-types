@@ -1,0 +1,14 @@
+INFO: task insmod:2496 blocked for more than 120 seconds.
+"echo 0 > /proc/sys/kernel/hung_task_timeout_secs" disables this message.
+insmod          D 0000000000000001     0  2496   1713 0x00000000
+ ffff88003696be58 0000000000000082 dead000000200200 ffffffff810307a0
+ ffff88003696bfd8 ffff88003696bfd8 ffff88003696bfd8 0000000000012b00
+ ffff8800369c0840 ffff880036ab8740 0000000000000286 ffff88003696be80
+Call Trace:
+ [<ffffffff81508829>] schedule_timeout+0x159/0x2f0
+ [<ffffffff81064228>] msleep+0x18/0x30
+ [<ffffffffa014a08e>] init1+0xe/0x20 [a]
+ [<ffffffff810001ca>] do_one_initcall+0x3a/0x180
+ [<ffffffff81090e4a>] sys_init_module+0xda/0x240
+ [<ffffffff81511c52>] system_call_fastpath+0x16/0x1b
+ [<00007ffadd1671ea>] 0x7ffadd1671e9
