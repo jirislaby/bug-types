@@ -1,0 +1,66 @@
+=======================================================
+[ INFO: possible circular locking dependency detected ]
+2.6.39-0.1-default #1
+-------------------------------------------------------
+insmod/2182 is trying to acquire lock:
+ (M2){+.+...}, at: [<ffffffffa012f054>] init1+0x54/0x70 [aaa]
+
+but task is already holding lock:
+ (M1){+.+...}, at: [<ffffffffa012f046>] init1+0x46/0x70 [aaa]
+
+which lock already depends on the new lock.
+
+
+the existing dependency chain (in reverse order) is:
+
+-> #1 (M1){+.+...}:
+       [<ffffffff8108ed2f>] save_trace+0x3f/0xd0
+       [<ffffffff8109150b>] check_prev_add+0x30b/0x6e0
+       [<ffffffff81091efb>] validate_chain+0x61b/0x6d0
+       [<ffffffff81092cff>] __lock_acquire+0x48f/0x9f0
+       [<ffffffff8109387f>] lock_acquire+0x9f/0x120
+       [<ffffffff81542c4b>] mutex_lock_nested+0x3b/0x320
+       [<ffffffffa012f020>] init1+0x20/0x70 [aaa]
+       [<ffffffff810002df>] do_one_initcall+0x3f/0x180
+       [<ffffffff810a069b>] sys_init_module+0xfb/0x260
+       [<ffffffff8154d292>] system_call_fastpath+0x16/0x1b
+       [<00007fd6d37761ea>] 0x7fd6d37761ea
+
+-> #0 (M2){+.+...}:
+       [<ffffffff8108ed2f>] save_trace+0x3f/0xd0
+       [<ffffffff81090631>] print_circular_bug+0x71/0xf0
+       [<ffffffff810918af>] check_prev_add+0x6af/0x6e0
+       [<ffffffff81091efb>] validate_chain+0x61b/0x6d0
+       [<ffffffff81092cff>] __lock_acquire+0x48f/0x9f0
+       [<ffffffff8109387f>] lock_acquire+0x9f/0x120
+       [<ffffffff81542c4b>] mutex_lock_nested+0x3b/0x320
+       [<ffffffffa012f054>] init1+0x54/0x70 [aaa]
+       [<ffffffff810002df>] do_one_initcall+0x3f/0x180
+       [<ffffffff810a069b>] sys_init_module+0xfb/0x260
+       [<ffffffff8154d292>] system_call_fastpath+0x16/0x1b
+       [<00007fd6d37761ea>] 0x7fd6d37761ea
+
+other info that might help us debug this:
+
+1 lock held by insmod/2182:
+ #0:  (M1){+.+...}, at: [<ffffffffa012f046>] init1+0x46/0x70 [aaa]
+
+stack backtrace:
+Pid: 2182, comm: insmod Not tainted 2.6.39-0.1-default #1
+Call Trace:
+ [<ffffffff81005c31>] try_stack_unwind+0x1a1/0x1c0
+ [<ffffffff81004533>] dump_trace+0x83/0x460
+ [<ffffffff81005ca7>] show_trace_log_lvl+0x57/0x70
+ [<ffffffff81005cd0>] show_trace+0x10/0x20
+ [<ffffffff815413cf>] dump_stack+0x72/0x7b
+ [<ffffffff810906a9>] print_circular_bug+0xe9/0xf0
+ [<ffffffff810918af>] check_prev_add+0x6af/0x6e0
+ [<ffffffff81091efb>] validate_chain+0x61b/0x6d0
+ [<ffffffff81092cff>] __lock_acquire+0x48f/0x9f0
+ [<ffffffff8109387f>] lock_acquire+0x9f/0x120
+ [<ffffffff81542c4b>] mutex_lock_nested+0x3b/0x320
+ [<ffffffffa012f054>] init1+0x54/0x70 [aaa]
+ [<ffffffff810002df>] do_one_initcall+0x3f/0x180
+ [<ffffffff810a069b>] sys_init_module+0xfb/0x260
+ [<ffffffff8154d292>] system_call_fastpath+0x16/0x1b
+ [<00007fd6d37761ea>] 0x7fd6d37761e9
