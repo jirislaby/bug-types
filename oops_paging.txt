@@ -1,0 +1,36 @@
+BUG: unable to handle kernel paging request at fffffffffffffff2
+IP: [<ffffffffa0124084>] init1+0x4/0x30 [a]
+PGD 1a05067 PUD 1a06067 PMD 0 
+Oops: 0000 [#1] SMP 
+last sysfs file: /sys/devices/system/cpu/cpu1/cache/index2/shared_cpu_map
+CPU 1 
+Modules linked in: a(+) sg joydev sr_mod cdrom usbhid dm_mod e1000 ppdev processor floppy pcspkr i2c_piix4 parport_pc parport thermal_sys button autofs4 uhci_hcd ehci_hcd usbcore
+Pid: 1859, comm: insmod Not tainted 2.6.39-rc7-24-default #1 Bochs Bochs
+RIP: 0010:[<ffffffffa0124084>]  [<ffffffffa0124084>] init1+0x4/0x30 [a]
+RSP: 0018:ffff880037547f28  EFLAGS: 00010296
+RAX: 0000000000000000 RBX: ffffffffa0126060 RCX: 00000000000009ea
+RDX: 0000000000000660 RSI: 00000000000000fb RDI: ffffffffa0124080
+RBP: 0000000000000000 R08: ffffffff81b1fae0 R09: 0000000000000200
+R10: 0000000000000001 R11: 0000000000000001 R12: ffffffffa0124080
+R13: 000000000002e810 R14: 0000000000040000 R15: 0000000000000003
+FS:  00007f1af69f3700(0000) GS:ffff880049900000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: fffffffffffffff2 CR3: 000000003709d000 CR4: 00000000000006e0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000ffff0ff0 DR7: 0000000000000400
+Process insmod (pid: 1859, threadinfo ffff880037546000, task ffff8800372441c0)
+Stack:
+ 0000000000000003 ffffffff810001ca 0000000000000000 ffffffffa0126060
+ 000000000002e810 0000000000604010 000000000002e810 ffffffff81090e4a
+ 00007fff2a96e818 00007f1af69b1010 0000000000604010 ffffffff81511c52
+Call Trace:
+ [<ffffffff810001ca>] do_one_initcall+0x3a/0x180
+ [<ffffffff81090e4a>] sys_init_module+0xda/0x240
+ [<ffffffff81511c52>] system_call_fastpath+0x16/0x1b
+ [<00007f1af65591ea>] 0x7f1af65591e9
+Code: c0 e8 0c 03 3d e1 bf e8 03 00 00 e8 a7 01 f4 e0 48 83 03 01 b8 01 00 00 00 5b c3 66 66 66 2e 0f 1f 84 00 00 00 00 00 48 83 ec 08 <0f> be 34 25 f2 ff ff ff 48 c7 c7 3f 50 12 a0 31 c0 e8 d1 02 3d 
+RIP  [<ffffffffa0124084>] init1+0x4/0x30 [a]
+ RSP <ffff880037547f28>
+CR2: fffffffffffffff2
+---[ end trace 9117981bf88e5166 ]---
+
