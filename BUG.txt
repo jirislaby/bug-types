@@ -1,0 +1,34 @@
+kernel BUG at /usr/src/packages/BUILD/kernel-desktop-2.6.38.6/linux-2.6.38/fs/buffer.c:1854!
+invalid opcode: 0000 [#1] PREEMPT SMP 
+last sysfs file: /sys/devices/system/cpu/cpu7/cache/index2/shared_cpu_map
+CPU 0 
+Modules linked in: fuse snd_pcm_oss snd_mixer_oss snd_seq snd_seq_device nfsd lockd nfs_acl zl10353 zl10039 zl10036 auth_rpcgss sunrpc exportfs ves1x93 ves1820 tua6100 tda826x tda8261 tda8083 tda665x tda10086 tda1004x tda10048 tda10023 tda10021 stv6110 stv0900 stv0299 stv0297 stv0288 stb6100 stb6000 stb0899 sp887x sp8870 si21xx s921 s5h1420 s5h1411 s5h1409 or51211 or51132 nxt6000 nxt200x mt352 mt312 mb86a20s mb86a16 lnbp21 lgs8gxx lgdt330x lgdt3305 l64781 ix2505v itd1000 isl6421 isl6405 ec100 dvb_pll ds3000 dib8000 dib7000p dib7000m dib3000mc dibx000_common dib3000mb dib0090 dib0070 cx24123 cx24116 cx24113 cx24110 cx22702 cx22700 bcm3510 au8522 v4l2_common atbm8830 af9013 dvb_ttpci saa7146_vv videodev v4l2_compat_ioctl32 videobuf_dma_sg videobuf_core cpufreq_conservative cpufreq_userspace cpufreq_powersave acpi_cpufreq mperf microcode sha256_generic cbc edd dm_crypt loop dm_mod isl6423 stv6110x stv090x budget budget_core snd_hda_codec_hdmi snd_hda_codec_realtek saa7146 ppdev sr_mod r8169 ttpci_eeprom snd_hda_intel dvb_core parport_pc parport i2c_i801 sg cdrom snd_hda_codec snd_hwdep snd_pcm snd_timer snd xhci_hcd iTCO_wdt iTCO_vendor_support pcspkr soundcore snd_page_alloc button ext4 jbd2 crc16 raid456 async_raid6_recov async_pq raid6_pq async_xor xor async_memcpy async_tx raid10 raid0 radeon ttm drm_kms_helper drm i2c_algo_bit raid1 fan processor ata_generic pata_it8213 aic7xxx scsi_transport_spi thermal thermal_sys
+Pid: 20416, comm: rsync Not tainted 2.6.38.6-27-desktop #1 Gigabyte Technology Co., Ltd. P55A-UD3/P55A-UD3
+RIP: 0010:[<ffffffff81187bc2>]  [<ffffffff81187bc2>] __block_write_begin+0x522/0x530
+RSP: 0018:ffff88020e10bca8  EFLAGS: 00010206
+RAX: 004000000000097d RBX: ffff88017cec7580 RCX: ffffffff811e7dc0
+RDX: 00000000000045d8 RSI: 0000000000000580 RDI: ffffea0005353b88
+RBP: 0000000000000058 R08: ffff88017cec7580 R09: ffff88017cec8000
+R10: ffffea0005353b88 R11: ffff88017cec7000 R12: 0000000000004058
+R13: 0000000000022580 R14: 000000000000004e R15: ffffea0005353b88
+FS:  00007f701f8c1700(0000) GS:ffff8800df400000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 0000000003bc0fc8 CR3: 0000000209eef000 CR4: 00000000000006f0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000ffff0ff0 DR7: 0000000000000400
+Process rsync (pid: 20416, threadinfo ffff88020e10a000, task ffff8800b335a100)
+Stack:
+ ffff88020e10bd98 ffff8800379f9035 0000000000000001 00ff88020e10be88
+ ffff88020e10be88 000045d80e10bda8 00000580a40f4ec0 ffff8801621a7728
+ ffffffff811e7dc0 ffff8801621a7870 0000000000000022 ffffffff810f9f40
+Call Trace:
+ [<ffffffff811e5763>] ext2_add_link+0x203/0x3d0
+ [<ffffffff811e9cae>] ext2_link+0x7e/0xe0
+ [<ffffffff811648aa>] vfs_link+0x15a/0x1d0
+ [<ffffffff81167bc9>] sys_linkat+0x189/0x1a0
+ [<ffffffff81002ed2>] system_call_fastpath+0x16/0x1b
+ [<00007f701ee065d7>] 0x7f701ee065d7
+Code: 54 24 2c 8b 74 24 34 4c 89 d7 4c 89 54 24 10 89 44 24 20 e8 c1 f6 ff ff 4c 8b 54 24 10 f0 41 80 22 f7 8b 44 24 20 e9 72 fe ff ff <0f> 0b 0f 0b 0f 0b 0f 0b 0f 0b 0f 1f 40 00 55 53 48 83 ec 18 48 
+RIP  [<ffffffff81187bc2>] __block_write_begin+0x522/0x530
+ RSP <ffff88020e10bca8>
+---[ end trace fffca3eacaddf6ec ]---

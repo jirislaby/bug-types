@@ -1,0 +1,32 @@
+divide error: 0000 [#1] PREEMPT SMP 
+last sysfs file: /sys/devices/virtual/net/lo/type
+CPU 0 
+Modules linked in: aaa(+) af_packet ppdev sr_mod joydev cdrom floppy parport_pc sg processor e1000 parport thermal_sys button pcspkr i2c_piix4 dm_mod autofs4
+Pid: 2051, comm: insmod Not tainted 2.6.39-rc7-25-desktop #1 Bochs Bochs
+RIP: 0010:[<ffffffffa0050014>]  [<ffffffffa0050014>] init1+0x14/0x40 [aaa]
+RSP: 0018:ffff880018be1f28  EFLAGS: 00010246
+RAX: 0000000000000064 RBX: 0000000000000000 RCX: 00000000000005b8
+RDX: 0000000000000000 RSI: 0000000000000064 RDI: ffffffffa0051024
+RBP: 0000000000000000 R08: ffffffff81b2d7e0 R09: 0000000000000200
+R10: 0000000000000001 R11: 0000000000000000 R12: ffffffffa0050000
+R13: 000000000002dbad R14: 0000000000040000 R15: 0000000000000003
+FS:  00007fb6c2e93700(0000) GS:ffff880018e00000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 00007fb6c29ed1e0 CR3: 0000000018600000 CR4: 00000000000006f0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000ffff0ff0 DR7: 0000000000000400
+Process insmod (pid: 2051, threadinfo ffff880018be0000, task ffff8800169ce180)
+Stack:
+ 0000000000000003 ffffffff810001ca 0000000000000000 ffffffffa0052000
+ 000000000002dbad 0000000000604010 000000000002dbad ffffffff8109505a
+ 00007fff09cbb916 00007fb6c2e51010 0000000000604010 ffffffff81570092
+Call Trace:
+ [<ffffffff810001ca>] do_one_initcall+0x3a/0x180
+ [<ffffffff8109505a>] sys_init_module+0xda/0x240
+ [<ffffffff81570092>] system_call_fastpath+0x16/0x1b
+ [<00007fb6c29ed1ea>] 0x7fb6c29ed1e9
+Code: <f7> 35 5e 22 00 00 89 c6 31 c0 e8 f3 1b 50 e1 48 8b 05 b6 c3 ad e1 
+RIP  [<ffffffffa0050014>] init1+0x14/0x40 [aaa]
+ RSP <ffff880018be1f28>
+---[ end trace 16e40c5d7390fe86 ]---
+

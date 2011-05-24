@@ -1,0 +1,34 @@
+------------[ cut here ]------------
+WARNING: at /usr/src/packages/BUILD/kernel-desktop-2.6.38/linux-2.6.37/sound/pci/hda/hda_codec.c:4887 snd_array_new+0xe5/0x100 [snd_hda_codec]()
+Hardware name: 74665EG
+BUG? (num >= 4096)
+Modules linked in: nls_utf8 nfs lockd fscache nfs_acl auth_rpcgss sunrpc binfmt_misc nls_iso8859_1 nls_cp437 vfat fat tun ppp_deflate zlib_deflate bsd_comp ppp_async crc_ccitt ppp_generic slhc joydev hidp fuse ip6table_filter ip6_tables ipt_MASQUERADE iptable_nat nf_nat nf_conntrack_ipv4 nf_defrag_ipv4 xt_state nf_conntrack ipt_REJECT xt_CHECKSUM iptable_mangle xt_tcpudp iptable_filter ip_tables edd rfcomm x_tables bridge af_packet stp llc sco bnep l2cap microcode sha256_generic cbc dm_crypt xfs exportfs snd_hda_codec_conexant arc4 ecb snd_hda_intel snd_hda_codec kvm_intel iwlagn snd_hwdep iwlcore kvm zaurus snd_pcm cdc_ether btusb thinkpad_acpi cdc_wdm cdc_acm mac80211 usbnet snd_timer e1000e i2c_i801 pcspkr uvcvideo bluetooth snd cfg80211 wmi videodev v4l2_compat_ioctl32 iTCO_wdt iTCO_vendor_support battery dm_mod ac soundcore snd_page_alloc rfkill sg loop autofs4 ext4 jbd2 crc16 i915 drm_kms_helper drm i2c_algo_bit button video fan thermal processor thermal_sys
+Pid: 2218, comm: alsa-sink Not tainted 2.6.38-rc2-1-desktop #1
+Call Trace:
+ [<ffffffff8105a5bb>] ? warn_slowpath_common+0x7b/0xc0
+ [<ffffffff8105a6b5>] ? warn_slowpath_fmt+0x45/0x50
+ [<ffffffffa049c9a5>] ? snd_array_new+0xe5/0x100 [snd_hda_codec]
+ [<ffffffffa04baaa8>] ? conexant_add_jack+0x48/0xc0 [snd_hda_codec_conexant]
+ [<ffffffffa04babd7>] ? cxt5051_init+0x67/0x130 [snd_hda_codec_conexant]
+ [<ffffffffa049fa2e>] ? hda_call_codec_resume+0xfe/0x120 [snd_hda_codec]
+ [<ffffffffa049faac>] ? snd_hda_power_up+0x5c/0x90 [snd_hda_codec]
+ [<ffffffffa03eaf3e>] ? azx_pcm_open+0x1ae/0x390 [snd_hda_intel]
+ [<ffffffffa037bd99>] ? snd_pcm_open_substream+0x59/0xf0 [snd_pcm]
+ [<ffffffffa037bf69>] ? snd_pcm_open+0x139/0x300 [snd_pcm]
+ [<ffffffff81053ec0>] ? default_wake_function+0x0/0x20
+ [<ffffffffa025706c>] ? snd_lookup_minor_data+0x6c/0x80 [snd]
+ [<ffffffffa02576c9>] ? snd_open+0x1c9/0x3c0 [snd]
+ [<ffffffff81159829>] ? chrdev_open+0x1a9/0x2b0
+ [<ffffffff81159680>] ? chrdev_open+0x0/0x2b0
+ [<ffffffff8115391f>] ? __dentry_open+0x10f/0x390
+ [<ffffffff81163f50>] ? finish_open+0xe0/0x1c0
+ [<ffffffff81163592>] ? do_path_lookup+0x82/0x160
+ [<ffffffff811646fd>] ? do_filp_open+0x28d/0x770
+ [<ffffffff81142fb7>] ? kmem_cache_alloc_trace+0x1f7/0x240
+ [<ffffffffa0373088>] ? snd_pcm_control_ioctl+0x68/0x230 [snd_pcm]
+ [<ffffffffa0257be2>] ? snd_card_file_remove+0x72/0x130 [snd]
+ [<ffffffffa025cec0>] ? snd_ctl_ioctl+0x0/0x6f0 [snd]
+ [<ffffffff81170f84>] ? alloc_fd+0xe4/0x140
+ [<ffffffff81154cc6>] ? do_sys_open+0x66/0x110
+ [<ffffffff81002ed2>] ? system_call_fastpath+0x16/0x1b
+---[ end trace 1bb1d0d9dbd877cb ]---
