@@ -1,0 +1,34 @@
+=============================================================================
+BUG kmalloc-32: Poison overwritten
+-----------------------------------------------------------------------------
+
+INFO: 0xffff8800170938f0-0xffff8800170938f1. First byte 0xfe instead of 0x6b
+INFO: Allocated in init1+0x24/0x80 [aaa] age=0 cpu=1 pid=2448
+INFO: Freed in init1+0x2f/0x80 [aaa] age=0 cpu=1 pid=2448
+INFO: Slab 0xffffea000050a028 objects=39 used=22 fp=0xffff8800170938f0 flags=0x40000000000000c1
+INFO: Object 0xffff8800170938f0 @offset=2288 fp=0xffff880017093958
+
+Bytes b4 0xffff8800170938e0:  00 00 00 00 00 00 00 00 5a 5a 5a 5a 5a 5a 5a 5a ........ZZZZZZZZ
+  Object 0xffff8800170938f0:  fe fe 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b ��kkkkkkkkkkkkkk
+  Object 0xffff880017093900:  6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b a5 kkkkkkkkkkkkkkk�
+ Redzone 0xffff880017093910:  bb bb bb bb bb bb bb bb                         ��������        
+ Padding 0xffff880017093950:  5a 5a 5a 5a 5a 5a 5a 5a                         ZZZZZZZZ        
+Pid: 2448, comm: insmod Tainted: G       A    2.6.39-rc7-mm1+ #281
+Call Trace:
+ [<ffffffff811068ce>] print_trailer+0xfe/0x160
+ [<ffffffff81106cd4>] check_bytes_and_report+0xf4/0x130
+ [<ffffffff81107a69>] check_object+0x229/0x270
+ [<ffffffffa0000234>] ? init1+0x54/0x80 [aaa]
+ [<ffffffff81107d94>] alloc_debug_processing+0x114/0x1e0
+ [<ffffffff811090dd>] __slab_alloc.clone.7+0x30d/0x460
+ [<ffffffffa0000234>] ? init1+0x54/0x80 [aaa]
+ [<ffffffff811092d7>] kmem_cache_alloc+0xa7/0xb0
+ [<ffffffffa00001e0>] ? release+0xe0/0xe0 [aaa]
+ [<ffffffffa0000234>] init1+0x54/0x80 [aaa]
+ [<ffffffff810002af>] do_one_initcall+0x3f/0x170
+ [<ffffffff810a801a>] sys_init_module+0xba/0x200
+ [<ffffffff8158b37b>] system_call_fastpath+0x16/0x1b
+FIX kmalloc-32: Restoring 0xffff8800170938f0-0xffff8800170938f1=0x6b
+
+FIX kmalloc-32: Marking all objects used
+
