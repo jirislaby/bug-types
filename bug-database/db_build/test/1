@@ -1,0 +1,20 @@
+<pre>
+
+Oct 19 17:38:15 nodo1 kernel: [193242.307677] kernel BUG at
+/usr/src/packages/BUILD/kernel-xen-2.6.31.12/linux-2.6.31/fs/inode.c:1323!
+
+Oct 19 17:38:15 nodo1 kernel: [193242.307683] invalid opcode: 0000 [#1] SMP 
+
+Oct 19 17:38:15 nodo1 kernel: [193242.307687] last sysfs file:
+/sys/kernel/dlm/50C3C1F8F8724030AF88A7EC2A48C195/control
+
+Oct 19 17:38:15 nodo1 kernel: [193242.307691] CPU 3 
+
+Oct 19 17:38:15 nodo1 kernel: [193242.307694] Modules linked in:
+nf_conntrack_ipv4 nf_defrag_ipv4 xt_state nf_conntrack xt_physdev
+iptable_filter ip_tables x_tables ocfs2 ocfs2_nodemanager quota_tree
+
+Oct 19 17:38:15 nodo1 kernel: [193242.307794] Pid: 4445, comm: dlm_send Not
+tainted 2.6.31.12-0.2-xen #1 IBM System x3650 -[7979AC1]-
+
+</pre>
