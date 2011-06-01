@@ -24,7 +24,12 @@ sub text($) {
 	print "sss: $1 $2 $3\n";
 }
 
-foreach (@ARGV) {
+foreach my $url (@ARGV) {
+	my $html = get($url);
+	if (!defined $html) {
+		print "Cannot fetch '$url'!\n";
+		next;
+	}
 	my $p = HTML::Parser->new(api_version => 3,
 			handlers => {
 				start => [\&start, "tagname"],
@@ -32,7 +37,8 @@ foreach (@ARGV) {
 				end => [\&end, "tagname"],
 			});
 	$p->unbroken_text(1);
-	$p->parse_file($_);
+	$p->parse($html);
+	$p->eof;
 }
 
 0;
