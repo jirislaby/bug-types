@@ -1,0 +1,10 @@
+inconsistent lock state -- once in softirq, once in user context
+bad unlock balance detected -- too many unlocks
+possible recursive locking detected -- too many locks
+possible circular locking dependency detected -- inverted locking (A->B; B->A)
+possible irq lock inversion dependency detected
+*-safe -> *-unsafe lock order detected
+lock held when returning to user space
+lock held at task exit time
+suspicious rcu_dereference_check() usage
+bad contention detected
