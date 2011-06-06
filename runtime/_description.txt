@@ -1,9 +1,0 @@
-BUG -- v kodu je volani BUG() (assert)
-WARNING -- v kodu je volani WARN() (assert)
-hung_task -- pokud se dlouho vykonava kod v jadru
-kmemleak -- nalez uniku pameti
-lockdep -- nalez chyby v zamcich
-oops_NULL -- NULL pointer dereference
-oops_paging -- dereference ukazatele do nikam
-
-Chybi slub_debug a kanarek
