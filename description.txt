@@ -6,13 +6,16 @@ This document classifies Linux kernel bugs into categories. It is intended for
 people to have better understanding of what can be output by the kernel and what
 kind of error it corresponds to.
 
-1 Single-line Bugs
-==================
-Here we have all the bugs which are caused by an error on _one_ identifiable
-location in the source code.
+For humans it is often easy to decide which exact line causes the particular
+error below. This is often not so easy for automatic tools though. Hence some of
+the errors may be reported on a single line (like asserts), some may span over
+many places in the code (like circular locking). The latter mostly happens when
+the tools find an error which can be caused by multiple locations in the code,
+but they are uncertain which one is the one causing the bug. In such case the
+checker reports them all.
 
-1.1 BUG/WARNING
----------------
+1 BUG/WARNING
+-------------
 This is a kind of assertion included directly in the source code. Programmers
 usually do not want the tested condition to happen. But if it happens under some
 circumstanses, they really want to hear back from users. If the condition is
@@ -25,8 +28,8 @@ Location: Specified by the macros above
 Detection: CPU raises an exception
 See: BUG.txt, WARNING.txt
 
-1.2 Division by Zero
---------------------
+2 Division by Zero
+------------------
 Obvious kind of error -- the code tries to divide and the divisor is zero.
 After processor generates an exception, OS dumps only stacktraces and registers
 dump.
@@ -36,25 +39,14 @@ Location: Specified by the line where division happens
 Detection: CPU raises an exception
 See: div_by_zero.txt
 
-1.3 Invalid Pointer Dereference
--------------------------------
-The code tries to access some memory, but the pointer used is invalid. The
-special case is NULL pointer where the value of the pointer is below page size
-(on x86 it is 4096). A processor generates an exception that the accessed
-virtual address is not mapped to any real memory. OS dumps only stacktraces and
-registers dump.
-
-Source: *ptr, ptr[offset], ptr->member etc.
-Location: Specified by the line where the dereference happens
-Detection: CPU raises an exception
-See: oops_NULL.txt, oops_paging.txt
-
-1.4 Memory Corruption
----------------------
-Somebody holds an orphaned pointer and writes to memory of somebody else. The
-writer might be either HW (by DMA) or SW. The pointer usually points to memory
-which was allocated earlier by a driver, but freed later by mistake or even
-intentionally without telling the rest of the driver to stop using it.
+3 Invalid Pointer Dereference
+-----------------------------
+The code tries to access some memory, but the pointer used is invalid. It may
+become invalid by many ways. This includes freeing of the pointed memory while
+the rest of the code still expects it valid or forgotten initialization of some
+pointer (it is NULL or undefined value). A processor generates an exception that
+the accessed virtual address is not mapped to any real memory. OS dumps only
+stacktraces and registers dump.
 
 Also a source of the problem might be accessing an array out-of-bounds. This can
 happen both on the stack and on the heap. Heap cases might be caught by
@@ -65,56 +57,141 @@ reported by OS as an error. Also heap protection also overwrites the memory
 after it is freed by the driver. Next allocation of such memory then watches the
 pattern change the same as above.
 
-Source: ptr = alloc(10); ptr[20] = value; free(ptr); *ptr = value; etc.
-Location: Specified by the line where the write happens
-Detection: CPU raises an exception
-See: slub_debug.txt
+3.1 NULL Pointer Dereference
+----------------------------
+The special case is NULL pointer where the value of the pointer is below some
+value (page size in the kernel, on x86 it is 4096).
 
-1.5 Memory Leaks
+Source: *ptr, ptr[offset], ptr->member etc.
+Source: ptr = alloc(10); ptr[20] = value; free(ptr); *ptr = value; etc.
+Location: Specified by the line where the dereference happens
+Detection: CPU raises an exception
+See: oops_NULL.txt, oops_paging.txt, slub_debug.txt
+
+4 Improper Resource Handling
+----------------------------
+This category includes all the behaviour where the resources are obtained from
+the system, but they are not returned back, are returned back twice, are
+returned without obtaining them first and similar.
+
+As memory is a special kind of resource and mistakes in handling of memory
+happen quite often, we list it in separate sections.
+
+4.1 Memory Leaks
 ----------------
-Some code allocates some memory, but forgets to free it on some/all paths. This
-can be checked by the kernel runtime checker called Kmemleak. It works the same
-as Valgrind -- like a tracing garbage collector.
+Some code allocates some memory, but forgets to free it on some path. This can
+be checked by the kernel runtime checker called Kmemleak. It works the same as
+Valgrind -- like a tracing garbage collector.
 
 Source: ptr = alloc(10) followed by no free(ptr) on some path
 Location: Specified by the line where the allocation happens
 Detection: Kmemleak
 See: kmemleak.txt
 
-1.6
+4.2 Double Frees
+------------------
+When the code performs allocation, but tries to free it twice. The kernel
+crashes due to corruption of the internal allocator structures.
 
-2 Multi-line Bugs
-==================
-These bugs need some specific coincidence of errors in the code. Or sometimes
-there may be only one error in the code, but only in cooperation with the
-correct code at a different place, it will trigger a bug. The tools are mostly
-uncertain which one is the correct one so they report both to user to choose.
+Source: ptr = alloc(10); free(ptr); free(ptr);
+Location: Specified by the line where the second free happens
 
-In other wording, if a bug may refer to multiple location and the checker cannot
-decide, all are reported.
+4.3 Resource Leaks
+--------------------
+Typically a driver, when enumerates a bus for devices to be driven, it increases
+a reference count of the structure describing the devices. But eventually when
+unloaded, it forgets to drop the reference. In such cases such devices cannot be
+cleanly unplugged from the system for instance.
 
-2.1 Lock Imbalances
--------------------
-Obviously the code contains locks without unlocks, vice versa, double locks or
-unlocks, circular locking dependency* and so on.
+Source: pci_get_dev(dev) without pci_put_dev(dev) on any path
+Location: Specified by the line where the reference count is increased
 
-* For example one function first locks A, then B, another function first locks B
-  then C and yet another one first locks C then A. If all three are scheduled to
-  run and all lock their first lock, they cannot lock the second because they
-  just deadlocked.
+4.4 Double Resource Put
+-------------------------
+Similarly to Double Frees above, when the device's reference count is
+incremented and later decremented twice, the system may crash. This is because
+the structure describing the device may vanish or the device might be powered
+off.
 
-Source: lock(A); lock(A); lock(B); if (x) return; unlock(B); etc.
-Locations: Specified by the line where the affected lock/unlock functions happen
-Detection: Lockdep
-See: lockdep.txt, lockdep-classes.txt
+Source: pci_get_dev(dev); pci_put_dev(dev); pci_put_dev(dev);
+Location: Specified by the line where the second put happens
 
-2.2 Hung Task
--------------
+5 Hung Task
+-----------
 Tasks may hang when there is an awaited event which never triggers or triggers
 after a very long time. Or when a programmer writes a loop without thorough
 thinking about invariant. Then the loop may last forever.
+
+Note we exclude infinite waiting for locks. This is covered in categories
+further in the text.
 
 Source: something like 'while (no_message()) loop;'
 Locations: Specified by lines where the code is looping
 Detection: Hung Task Checker
 See: hung_task.txt
+
+6 Locking Problems
+------------------
+The code contains any locking policy violation like locks without unlocks,
+unlocks without locks, double locks or unlocks, circular locking dependency.
+
+This is exactly where the tools have hard times to decide the exact place of the
+actual error. So they mostly report all the relevant locations to let the user
+decide. This will be commented further on in the respective subsections.
+
+6.1 Circular Locking Dependency
+-------------------------------
+This is perhaps the most known case of deadlock. There is a set of processes,
+each of them waiting for each other. Like dining philosophers, for example one
+function first locks A, then B, another function first locks B then C and yet
+another one first locks C then A. If all three are scheduled to run and all lock
+their first lock, they cannot lock the second because they have just deadlocked.
+
+Source: lock(A); lock(B); and lock(B); lock(A); in two functions
+Locations: Specified by the lines where the lock functions are called
+Detection: Lockdep
+See: lockdep.txt, lockdep-classes.txt
+
+6.2 Double Lock/Unlock
+----------------------
+A programmer nests two lock or unlock calls. This is generally possible with
+obsoleted semaphores, but where this will lead to deadlock is use of mutexes
+and spinlocks.
+
+Source: lock(A); lock(A); unlock(A); unlock(A);
+Locations: Specified by the lines where the lock/unlock functions are called
+Detection: Lockdep
+See: lockdep.txt, lockdep-classes.txt
+
+6.3 Lock Held When Returning to Userspace
+-----------------------------------------
+This may be intention or not. The programmer doesn't unlock a lock while the
+syscall is finished or task killed. This might not lead to problems when the
+lock is allocated per task. However generally this is deprecated.
+
+Source: lock(A); in some syscall routine like read
+Locations: Specified by the line where the lock function is called
+Detection: Lockdep
+See: lockdep.txt, lockdep-classes.txt
+
+6.4 Omitted Unlock      ===========  HANDLE SEPARATELY?
+------------------
+When some function takes a lock, but some path in that functions omits to unlock
+it. This may be in fact reduced to either of the previous 2 cases as it will
+appear as double lock next time the lock is about to be locked. Or as 6.3
+instantly when this happens in some syscall handler.
+
+6.5 Inconsistent Lock State
+-----------------------------------------
+This is specific to the kernel. When an interrupt (from hardware, timer) might
+interrupt a critical section, the system will deadlock. So when for example some
+syscall handler takes a spinlock, a HW interrupts the execution and interrupt
+handler wants to take the lock again, the system will die. The proper fix is to
+disable interrupts, take the spinlock, work, unlock the spinlock, enable
+interrupts. That way, the critical section cannot be interrupted.
+
+Source: spin_lock(A); spin_unlock(A); both in user and interrupt contexts
+Locations: Specified by the line where the lock functions are called
+Detection: Lockdep
+See: lockdep.txt, lockdep-classes.txt
+
