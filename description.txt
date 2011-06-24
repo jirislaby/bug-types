@@ -39,8 +39,8 @@ Location: Specified by the line where division happens
 Detection: CPU raises an exception
 See: div_by_zero.txt
 
-3 Invalid Pointer Dereference (except NULL)
--------------------------------------------
+3 Invalid Pointer Dereference (incl. NULL)
+------------------------------------------
 The code tries to access some memory, but the pointer used is invalid. It may
 become invalid by many ways. Be it using of memory which was freed by other part
 of the system or driver. Be it forgotten initialization of some pointer (it is
@@ -59,23 +59,17 @@ reported by OS as an error. Heap protection also overwrites the memory after it
 is freed by the driver. Next allocation of such memory then watches the pattern
 change for changes the same as above.
 
-Source: *ptr, ptr[offset], ptr->member etc.
-Source: ptr = alloc(10); ptr[20] = value; free(ptr); *ptr = value; etc.
-Location: Specified by the line where the dereference happens
-Detection: CPU raises an exception (not in case of memory corruption)
-See: oops_paging.txt, slub_debug.txt
-
-4 NULL Pointer Dereference
---------------------------
 The special case of the previous is NULL pointer where the value of the pointer
 is below some value (page size in the kernel, on x86 it is 4096).
 
+Source: *ptr, ptr[offset], ptr->member etc.
+Source: ptr = alloc(10); ptr[20] = value; free(ptr); *ptr = value; etc.
 Source: ptr = NULL; followed by *ptr, ptr[offset], ptr->member etc.
 Location: Specified by the line where the dereference happens
-Detection: CPU raises an exception
-See: oops_NULL.txt
+Detection: CPU raises an exception (not in case of memory corruption)
+See: oops_NULL.txt, oops_paging.txt, slub_debug.txt
 
-5 Memory Leaks
+4 Memory Leaks
 --------------
 Some code allocates some memory, but forgets to free it on some path. This can
 be checked by the kernel runtime checker called Kmemleak. It works the same as
@@ -86,7 +80,7 @@ Location: Specified by the line where the allocation happens
 Detection: Kmemleak
 See: kmemleak.txt
 
-6 Double Frees
+5 Double Frees
 --------------
 When the code performs allocation, but tries to free it twice. The kernel
 crashes due to corruption of the internal allocator structures.
@@ -94,7 +88,7 @@ crashes due to corruption of the internal allocator structures.
 Source: ptr = alloc(10); free(ptr); free(ptr);
 Location: Specified by the line where the second free happens
 
-7 Resource Leaks
+6 Resource Leaks
 ----------------
 Typically a driver, when enumerates a bus for devices to be driven, it increases
 a reference count of the structure describing the devices. But eventually when
@@ -104,7 +98,7 @@ cleanly unplugged from the system for instance.
 Source: pci_get_dev(dev) without pci_put_dev(dev) on any path
 Location: Specified by the line where the reference count is increased
 
-8 Double Resource Put
+7 Double Resource Put
 ---------------------
 Similarly to Double Frees above, when the device's reference count is
 incremented and later decremented twice, the system may crash. This is because
@@ -114,11 +108,12 @@ off.
 Source: pci_get_dev(dev); pci_put_dev(dev); pci_put_dev(dev);
 Location: Specified by the line where the second put happens
 
-9 Hung Task
+8 Hung Task
 -----------
 Tasks may hang when there is an awaited event which never triggers or triggers
-after a very long time. Or when a programmer writes a loop without thorough
-thinking about invariant. Then the loop may last forever.
+unexpectedly after a very long time. Or it might be caused by a programming
+error when a programmer writes a loop which may last forever under certain
+circumstances.
 
 Note we exclude infinite waiting for locks. This is covered in categories
 further in the text.
@@ -128,13 +123,18 @@ Locations: Specified by lines where the code is looping
 Detection: Hung Task Checker
 See: hung_task.txt
 
-10 Circular Locking Dependency
-------------------------------
+9 Circular Locking Dependency
+-----------------------------
 This is perhaps the most known case of deadlock. There is a set of processes,
 each of them waiting for each other. Like dining philosophers, for example one
 function first locks A, then B, another function first locks B then C and yet
 another one first locks C then A. If all three are scheduled to run and all lock
 their first lock, they cannot lock the second because they have just deadlocked.
+
+Sometimes, there is a circular dependency in the code, but the deadlock will
+never occur. This happens for example when the two locks in each function are
+protected by fourth lock. I.e. the two locks may be locked only atomically, not
+sequentially.
 
 Source: lock(A); lock(B); and lock(B); lock(A); in two functions
 Locations: Specified by the lines where the processes are waiting infinitely
@@ -142,13 +142,23 @@ Locations: Specified by the lines where the processes are waiting infinitely
 Detection: Lockdep
 See: lockdep.txt, lockdep-classes.txt
 
-11 Double Lock/Unlock
----------------------
-A programmer nests two lock or unlock calls. This is generally possible with
-obsoleted semaphores, but where this will lead to deadlock is use of mutexes
-and spinlocks.
+10 Double Lock
+--------------
+A programmer nests two lock calls. This is generally possible with obsoleted
+semaphores, but where this will lead to deadlock is use of mutexes and
+spinlocks.
 
-Source: lock(A); lock(A); unlock(A); unlock(A);
+Source: lock(A); lock(A);
+Locations: Specified by the lines where the processes are waiting infinitely
+	   (i.e. some of calls to lock functions)
+Detection: Lockdep
+See: lockdep.txt, lockdep-classes.txt
+
+11 Double Unlock
+----------------
+The same as above, except the programmer nests two unlock calls.
+
+Source: unlock(A); unlock(A);
 Locations: Specified by the lines where the processes are waiting infinitely
 	   (i.e. some of calls to lock functions)
 Detection: Lockdep
@@ -156,9 +166,13 @@ See: lockdep.txt, lockdep-classes.txt
 
 12 Lock Held When Returning to Userspace
 ----------------------------------------
-This may be intention or not. The programmer doesn't unlock a lock while the
-syscall is finished or task killed. This might not lead to problems when the
-lock is allocated per task. However generally this is deprecated.
+The programmer does not unlock a lock while the syscall is finished or task
+killed. It may happen to be an intention by an untaught programmer. Althought it
+will not lead to problems for example when the lock is allocated per task,
+generally this code behavior is documented to be deprecated.
+
+A reader might suggest that this is kernel specific. It is because a user
+program cannot switch to another space.
 
 Source: lock(A); in some syscall routine like read
 Locations: Specified by the line where the lock function is called
@@ -167,13 +181,17 @@ See: lockdep.txt, lockdep-classes.txt
 
 13 Inconsistent Lock State
 --------------------------
-This is specific to the kernel. When an interrupt (from hardware, timer) might
-interrupt a critical section and the interrupt wants to lock the same lock, the
-system will deadlock. So when for example some syscall handler takes a spinlock,
-a HW interrupts the execution and interrupt handler wants to take the lock
-again, the system will die. The proper fix is to change the syscall to disable
-interrupts, take the spinlock, work, unlock the spinlock, enable interrupts.
-That way, the critical section cannot be interrupted.
+When an interrupt (from hardware, timer) might interrupt a critical section and
+the interrupt wants to lock the same lock, the system will deadlock. So when for
+example some syscall handler takes a spinlock, a HW interrupts the execution and
+interrupt handler wants to take the lock again, the system will die. The proper
+fix is to change the syscall to disable interrupts, take the spinlock, work,
+unlock the spinlock, enable interrupts.  That way, the critical section cannot
+be interrupted.
+
+This is rather specific to the kernel. Theoretically, this can happen with
+signal handlers in userspace. However we are not aware of any mutual exclusion
+implementations which present themselves to be signal-safe.
 
 Source: spin_lock(A); spin_unlock(A); both in user and interrupt contexts
 Locations: Specified by the line where the lock function is called without
