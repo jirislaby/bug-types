@@ -1,5 +1,6 @@
 #!/usr/bin/perl -w
 use strict;
+use Authen::Passphrase::BlowfishCrypt;
 use DBI;
 
 die "wrong commandline. should be $0 dest.db URLs..." if @ARGV < 1;
@@ -51,14 +52,20 @@ $dbh->do("CREATE TABLE error_trace(id INTEGER PRIMARY KEY, error_id INT, " .
 		die "cannot CREATE err_trace: " . DBI::errstr;
 $dbh->do("CREATE TABLE tool(id INTEGER PRIMARY KEY, " .
 		"name VARCHAR(255) NOT NULL, version VARCHAR(32), " .
-		"url STRING, UNIQUE(name, version))") ||
+		"url STRING, description STRING, UNIQUE(name, version))") ||
 		die "cannot CREATE tool: " . DBI::errstr;
 $dbh->do("CREATE TABLE error_tool_rel(tool_id INT, error_id INT, " .
 		"FOREIGN KEY(tool_id) REFERENCES tool(id), " .
 		"FOREIGN KEY(error_id) REFERENCES error(id))") ||
 		die "cannot CREATE error_tool_rel: " . DBI::errstr;
 
-$dbh->do("INSERT INTO tool
+$dbh->do("INSERT INTO user(name, affilitation, login, password) VALUES " .
+		"('Jiri Slaby', 'FI MU', 'jirislaby', " .
+		"'Taking a firm stanse on bugs')");
+
+$dbh->do("INSERT INTO tool(name, version, url, description) VALUES " .
+		"('Stanse', '2', 'http://stanse.fi.muni.cz/', " .
+		"'Taking a firm stanse on bugs')");
 
 $dbh->commit;
 
