@@ -3,6 +3,34 @@ use strict;
 use HTML::Parser;
 use HTTP::Request;
 use LWP::UserAgent;
+use DBI;
+
+die "wrong commandline. should be $0 dest.db URLs..." if @ARGV < 2;
+
+my $out = shift @ARGV;
+
+if (-e $out) {
+	my $reply = "N";
+	do {
+		print "'$out' already exists, overwrite? [y/N] ";
+		$reply = uc(<STDIN>);
+		chomp($reply);
+	} while ($reply ne "Y" && $reply ne "N" && $reply ne "");
+	exit 1 if ($reply ne "Y");
+	unlink $out;
+}
+
+my $dbh = DBI->connect("dbi:SQLite:dbname=$out","","", {AutoCommit => 0}) ||
+	die "connect to db error: " . DBI::errstr;
+
+$dbh->do("CREATE TABLE errors(id INTEGER PRIMARY KEY, checker STRING, " .
+		"importance INTEGER, fp_bug INTEGER, error STRING, " .
+		"file STRING, line INTEGER, locations INTEGER, " .
+		"errorXML BLOB)");
+
+my $data = $dbh->prepare("INSERT INTO errors(checker, importance, fp_bug, " .
+		"error, file, line, locations, errorXML) " .
+		"VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
 
 my $parsetext = 0;
 my $found;
@@ -34,9 +62,19 @@ sub text($) {
 	}
 	$found = 1;
 	print "\tsss: $ver $src:$line\n";
+
+	$data->execute($error->findvalue("checker_name"),
+			$error->findvalue("importance"),
+			$fp_bug,
+			$error->findvalue("short_desc"),
+			$unit, $loc->findvalue("line"),
+			$loc_count,
+			XML::XPath::XMLParser::as_string($error));
 }
 
 my $arg = 0;
+
+open FAILED, ">failed.urls";
 
 foreach my $url (@ARGV) {
 	$arg++;
@@ -44,6 +82,7 @@ foreach my $url (@ARGV) {
 	my $response = $ua->simple_request(HTTP::Request->new(GET => $url));
 	if (!$response->is_success) {
 		print "\tCannot fetch '$url': ", $response->status_line, "\n";
+		print FAILED "$url FETCH ", $response->status_line, "\n";
 		next;
 	}
 	print "\tParsing HTML\n";
@@ -58,11 +97,20 @@ foreach my $url (@ARGV) {
 	$p->parse($response->content);
 	$p->eof;
 	if (!$found) {
+		print FAILED "$url PARSE nothing found\n";
 		print "\tNothing found at '$url'. The file stored as 'arg$arg'.\n";
 		open F, ">arg$arg";
 		print F $response->content;
 		close F;
 	}
 }
+
+close FAILED;
+
+$data->finish;
+
+$dbh->commit;
+
+$dbh->disconnect;
 
 0;
