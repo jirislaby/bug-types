@@ -23,11 +23,6 @@ if (-e $out) {
 my $dbh = DBI->connect("dbi:SQLite:dbname=$out","","", {AutoCommit => 0}) ||
 	die "connect to db error: " . DBI::errstr;
 
-$dbh->do("CREATE TABLE errors(id INTEGER PRIMARY KEY, checker STRING, " .
-		"importance INTEGER, fp_bug INTEGER, error STRING, " .
-		"file STRING, line INTEGER, locations INTEGER, " .
-		"errorXML BLOB)");
-
 my $data = $dbh->prepare("INSERT INTO errors(checker, importance, fp_bug, " .
 		"error, file, line, locations, errorXML) " .
 		"VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
@@ -63,13 +58,12 @@ sub text($) {
 	$found = 1;
 	print "\tsss: $ver $src:$line\n";
 
-	$data->execute($error->findvalue("checker_name"),
-			$error->findvalue("importance"),
-			$fp_bug,
-			$error->findvalue("short_desc"),
-			$unit, $loc->findvalue("line"),
-			$loc_count,
-			XML::XPath::XMLParser::as_string($error));
+#	$data->execute($error->findvalue("checker_name"),
+#			$error->findvalue("importance"),
+#			$fp_bug,
+#			$error->findvalue("short_desc"),
+#			$unit, $loc->findvalue("line"),
+#			$loc_count,
 }
 
 my $arg = 0;
