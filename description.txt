@@ -27,6 +27,7 @@ Source: BUG() or WARNING()
 Location: Specified by the macros above
 Detection: CPU raises an exception
 See: BUG.txt, WARNING.txt
+CWE-URL: http://cwe.mitre.org/data/definitions/617.html
 
 2 Division by Zero
 ------------------
@@ -38,6 +39,7 @@ Source: a = b / c
 Location: Specified by the line where division happens
 Detection: CPU raises an exception
 See: div_by_zero.txt
+CWE-URL: http://cwe.mitre.org/data/definitions/369.html
 
 3 Invalid Pointer Dereference (incl. NULL)
 ------------------------------------------
@@ -68,6 +70,8 @@ Source: ptr = NULL; followed by *ptr, ptr[offset], ptr->member etc.
 Location: Specified by the line where the dereference happens
 Detection: CPU raises an exception (not in case of memory corruption)
 See: oops_NULL.txt, oops_paging.txt, slub_debug.txt
+URL-CWE: http://cwe.mitre.org/data/definitions/416.html
+URL-CWE: http://cwe.mitre.org/data/definitions/465.html
 
 4 Memory Leaks
 --------------
@@ -79,6 +83,7 @@ Source: ptr = alloc(10) followed by no free(ptr) on some path
 Location: Specified by the line where the allocation happens
 Detection: Kmemleak
 See: kmemleak.txt
+URL-CWE: http://cwe.mitre.org/data/definitions/401.html
 
 5 Double Frees
 --------------
@@ -87,6 +92,7 @@ crashes due to corruption of the internal allocator structures.
 
 Source: ptr = alloc(10); free(ptr); free(ptr);
 Location: Specified by the line where the second free happens
+URL-CWE: http://cwe.mitre.org/data/definitions/415.html
 
 6 Resource Leaks
 ----------------
@@ -97,6 +103,7 @@ cleanly unplugged from the system for instance.
 
 Source: pci_get_dev(dev) without pci_put_dev(dev) on any path
 Location: Specified by the line where the reference count is increased
+URL-CWE: http://cwe.mitre.org/data/definitions/404.html
 
 7 Double Resource Put
 ---------------------
@@ -107,6 +114,7 @@ off.
 
 Source: pci_get_dev(dev); pci_put_dev(dev); pci_put_dev(dev);
 Location: Specified by the line where the second put happens
+URL-CWE: http://cwe.mitre.org/data/definitions/763.html
 
 8 Hung Task
 -----------
@@ -122,6 +130,7 @@ Source: something like 'while (no_message()) loop;'
 Locations: Specified by lines where the code is looping
 Detection: Hung Task Checker
 See: hung_task.txt
+URL-CWE: http://cwe.mitre.org/data/definitions/835.html
 
 9 Circular Locking Dependency
 -----------------------------
@@ -141,6 +150,7 @@ Locations: Specified by the lines where the processes are waiting infinitely
 	   (i.e. some of calls to lock functions)
 Detection: Lockdep
 See: lockdep.txt, lockdep-classes.txt
+URL-CWE: http://cwe.mitre.org/data/definitions/833.html
 
 10 Double Lock
 --------------
@@ -153,6 +163,7 @@ Locations: Specified by the lines where the processes are waiting infinitely
 	   (i.e. some of calls to lock functions)
 Detection: Lockdep
 See: lockdep.txt, lockdep-classes.txt
+URL-CWE: http://cwe.mitre.org/data/definitions/764.html
 
 11 Double Unlock
 ----------------
@@ -163,6 +174,7 @@ Locations: Specified by the lines where the processes are waiting infinitely
 	   (i.e. some of calls to lock functions)
 Detection: Lockdep
 See: lockdep.txt, lockdep-classes.txt
+URL-CWE: http://cwe.mitre.org/data/definitions/765.html
 
 12 Lock Held When Returning to Userspace
 ----------------------------------------
@@ -178,6 +190,7 @@ Source: lock(A); in some syscall routine like read
 Locations: Specified by the line where the lock function is called
 Detection: Lockdep
 See: lockdep.txt, lockdep-classes.txt
+URL-CWE: http://cwe.mitre.org/data/definitions/765.html
 
 13 Inconsistent Lock State
 --------------------------
@@ -198,4 +211,4 @@ Locations: Specified by the line where the lock function is called without
 	   disabling interrupts
 Detection: Lockdep
 See: lockdep.txt, lockdep-classes.txt
-
+URL-CWE: http://cwe.mitre.org/data/definitions/667.html
