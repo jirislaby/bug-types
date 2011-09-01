@@ -5,29 +5,70 @@ use HTTP::Request;
 use LWP::UserAgent;
 use DBI;
 
+my $tool_name = "Web Crawler";
+my $tool_ver = "0.1";
+
+my $dest_proj = "Linux Kernel";
+my $error_type = "BUG/WARNING";
+my $user = "jirislaby";
+
 die "wrong commandline. should be $0 dest.db URLs..." if @ARGV < 2;
 
 my $out = shift @ARGV;
 
-if (-e $out) {
-	my $reply = "N";
-	do {
-		print "'$out' already exists, overwrite? [y/N] ";
-		$reply = uc(<STDIN>);
-		chomp($reply);
-	} while ($reply ne "Y" && $reply ne "N" && $reply ne "");
-	exit 1 if ($reply ne "Y");
-	unlink $out;
+if (!-e $out) {
+	print "'$out' doesn't exist!\n";
+	exit 1;
 }
 
 my $dbh = DBI->connect("dbi:SQLite:dbname=$out","","", {AutoCommit => 0}) ||
 	die "connect to db error: " . DBI::errstr;
 
-my $data = $dbh->prepare("INSERT INTO errors(checker, importance, fp_bug, " .
-		"error, file, line, locations, errorXML) " .
-		"VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
+my $data = $dbh->prepare("SELECT id FROM project WHERE name = ?") ||
+	die "cannot fetch kernel ID";
+$data->execute($dest_proj) || die "cannot fetch kernel ID";
+my $proj_id = ${$data->fetchrow_hashref}{id};
+
+$data = $dbh->prepare("SELECT id FROM error_type WHERE name = ?") ||
+	die "cannot fetch error type ID";
+$data->execute($error_type) || die "cannot fetch error type ID";
+my $error_type_id = ${$data->fetchrow_hashref}{id};
+
+$data = $dbh->prepare("SELECT id FROM user WHERE login = ?") ||
+	die "cannot fetch user ID";
+$data->execute($user) || die "cannot fetch user ID";
+my $user_id = ${$data->fetchrow_hashref}{id};
+
+$data = $dbh->prepare("INSERT INTO tool(name, version, description) " .
+		"VALUES (?, ?, ?)") ||
+                die "cannot INSERT tool: " . DBI::errstr;
+my $ret = $data->execute($tool_name, $tool_ver, "Crawls web and searches for " .
+		"reported errors.");
+unless (defined $ret) {
+	print "XX=", $dbh->err, "\n";
+#	foreach my $key (keys %{$dbh->err}) {
+#		print "K  $key: $$dbh->err{$key}\n";
+#	}
+}
+#die "cannot INSERT tool: " . DBI::errstr if ($err && $dbh->err != );
+
+$data = $dbh->prepare("SELECT id FROM tool WHERE name = ? AND version = ?") ||
+	die "cannot fetch tool ID";
+$data->execute($tool_name, $tool_ver) || die "cannot fetch tool ID";
+my $tool_id = ${$data->fetchrow_hashref}{id};
+
+print "$dest_proj: $proj_id\n";
+print "$error_type: $error_type_id\n";
+print "$user: $user_id\n";
+print "tool ID: $tool_id\n";
+
+$data = $dbh->prepare("INSERT INTO error(user, error_type, project, " .
+		"project_version, loc_file, loc_line, url) " .
+		"VALUES (?, ?, ?, ?, ?, ?, ?)") ||
+		die "cannot prepare INSERT: " . DBI::errstr;
 
 my $parsetext = 0;
+my $url;
 my $found;
 my $ua = LWP::UserAgent->new;
 $ua->timeout(10);
@@ -58,19 +99,16 @@ sub text($) {
 	$found = 1;
 	print "\tsss: $ver $src:$line\n";
 
-#	$data->execute($error->findvalue("checker_name"),
-#			$error->findvalue("importance"),
-#			$fp_bug,
-#			$error->findvalue("short_desc"),
-#			$unit, $loc->findvalue("line"),
-#			$loc_count,
+	$data->execute($user_id, $error_type_id, $proj_id, $ver, $src, $line,
+			$url) ||
+		die "cannot INSERT: " . DBI::errstr;
 }
 
 my $arg = 0;
 
 open FAILED, ">failed.urls";
 
-foreach my $url (@ARGV) {
+foreach $url (@ARGV) {
 	$arg++;
 	print "Fetching $url\n";
 	my $response = $ua->simple_request(HTTP::Request->new(GET => $url));
@@ -100,8 +138,6 @@ foreach my $url (@ARGV) {
 }
 
 close FAILED;
-
-$data->finish;
 
 $dbh->commit;
 
