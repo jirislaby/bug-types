@@ -65,7 +65,8 @@ $_ = $data->fetchrow_hashref;
 print $cg->h2("$$_{cid} Errors Found"), "\n";
 
 $data = $dbh->prepare("SELECT error.id id, error_type.name error_type, " .
-	"error_subtype, project.name project, project_version, loc_file, " .
+	"error_type.CWE_error CWE_error, error_subtype, " .
+	"project.name project, project_version, loc_file, " .
 	"loc_line, user.name user, login, timestamp_enter FROM error " .
 	"INNER JOIN project ON error.project = project.id " .
 	"INNER JOIN error_type ON error.error_type = error_type.id " .
@@ -80,7 +81,11 @@ while ($_ = $data->fetchrow_hashref) {
 	my $url = $$_{url};
 	print qq(<div style="font-weight: bold;">Error $$_{id}</div>\n);
 	print qq(<div style="margin-left: 1em;">\n);
-	print qq(<div><b>Type:</b> $$_{error_type}</div>\n);
+	print qq(<div><b>Type:</b> );
+	print qq(<a href="http://cwe.mitre.org/data/definitions/$$_{CWE_error}.html">) if (defined $$_{CWE_error});
+	print qq($$_{error_type});
+	print qq(</a>) if (defined $$_{CWE_error});
+	print qq(</div>\n);
 	print qq(<div><b>Subtype:</b> $$_{error_subtype}</div>\n)
 		if ($$_{error_subtype});
 	print qq(<div><b>Project:</b> $$_{project}</div>\n);

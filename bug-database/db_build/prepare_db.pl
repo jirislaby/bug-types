@@ -30,7 +30,7 @@ $dbh->do("CREATE TABLE user(id INTEGER PRIMARY KEY, name VARCHAR(255), " .
 $dbh->do("CREATE TABLE error_type(id INTEGER PRIMARY KEY, " .
 		"name VARCHAR(255) UNIQUE, " .
 		"short_description VARCHAR(255) NOT NULL, " .
-		"description STRING)") ||
+		"CWE_error INTEGER)") ||
 		die "cannot CREATE err_type: " . DBI::errstr;
 $dbh->do("CREATE TABLE project(id INTEGER PRIMARY KEY, " .
 		"name VARCHAR(255) UNIQUE, url STRING, description STRING)") ||
@@ -80,6 +80,7 @@ $data = $dbh->prepare("INSERT INTO tool(name, version, url, description) " .
 $data->execute("Stanse", "2", "http://stanse.fi.muni.cz/",
 		"Taking a firm stanse on bugs") ||
 		die "cannot INSERT tool: " . DBI::errstr;
+my $stanse_id = $dbh->last_insert_id(undef, undef, undef, undef);
 $data->execute("Soberity", "100012211.2434.3", undef,
 		"Lorem Ipsum is simply dummy text of the printing and" .
 		"typesetting industry. Lorem Ipsum has been the industry's " .
@@ -101,12 +102,11 @@ $data->execute("Linux Kernel", "http://www.kernel.org/", undef) ||
 		die "cannot INSERT project: " . DBI::errstr;
 
 $data = $dbh->prepare("INSERT INTO error_type(name, short_description, " .
-		"description) VALUES (?, ?, ?)") ||
+		"CWE_error) VALUES (?, ?, ?)") ||
 		die "cannot INSERT error_type: " . DBI::errstr;
 $data->execute("BUG/WARNING", "An unsatisfied assertion in the code", undef) ||
 		die "cannot INSERT error_type: " . DBI::errstr;
-$data->execute("div by zero", "The code tries to divide by zero",
-		"There is a division in the code and the divisor is zero.") ||
+$data->execute("div by zero", "The code tries to divide by zero", 369) ||
 		die "cannot INSERT error_type: " . DBI::errstr;
 
 $data = $dbh->prepare("INSERT INTO error(user, error_type, error_subtype, " .
@@ -118,11 +118,12 @@ $data->execute(1, 1, undef, 1, undef, undef, "/abc", "100", undef, undef) ||
 $data->execute(1, 2, "Subtype XYZ", 1, "2.6.28", "Note this crap", "/abc",
 		"100", "http://www.fi.muni.cz", 1) ||
 		die "cannot INSERT error: " . DBI::errstr;
+my $error_id = $dbh->last_insert_id(undef, undef, undef, undef);
 
 $data = $dbh->prepare("INSERT INTO error_tool_rel(tool_id, error_id) " .
-		"VALUES (1, last_insert_rowid())") ||
+		"VALUES (?, ?)") ||
 		die "cannot INSERT error-tool rel: " . DBI::errstr;
-$data->execute ||
+$data->execute($stanse_id, $error_id) ||
 		die "cannot INSERT error-tool rel: " . DBI::errstr;
 
 $dbh->commit;
