@@ -71,7 +71,7 @@ $data = $dbh->prepare("SELECT error.id id, error_type.name error_type, " .
 	"INNER JOIN project ON error.project = project.id " .
 	"INNER JOIN error_type ON error.error_type = error_type.id " .
 	"INNER JOIN user ON error.user = user.id " .
-	"$where ORDER BY error_type") ||
+	"$where ORDER BY error_type, id") ||
 	die "cannot SELECT errors: " . DBI::errstr;
 $data->execute(@where_param) || die "cannot SELECT errors: " . DBI::errstr;
 while ($_ = $data->fetchrow_hashref) {
