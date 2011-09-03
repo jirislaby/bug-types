@@ -24,6 +24,8 @@ if (!-e $out) {
 my $dbh = DBI->connect("dbi:SQLite:dbname=$out","","", {AutoCommit => 0}) ||
 	die "connect to db error: " . DBI::errstr;
 
+$dbh->do("PRAGMA foreign_keys = ON;");
+
 my $data = $dbh->prepare("SELECT id FROM project WHERE name = ?") ||
 	die "cannot fetch kernel ID";
 $data->execute($dest_proj) || die "cannot fetch kernel ID";
@@ -67,6 +69,10 @@ $data = $dbh->prepare("INSERT INTO error(user, error_type, project, " .
 		"VALUES (?, ?, ?, ?, ?, ?, ?)") ||
 		die "cannot prepare INSERT: " . DBI::errstr;
 
+my $data1 = $dbh->prepare("INSERT INTO error_tool_rel(tool_id, error_id) " .
+		"VALUES (?, ?)") ||
+		die "cannot prepare INSERT: " . DBI::errstr;
+
 my $parsetext = 0;
 my $url;
 my $found;
@@ -86,14 +92,17 @@ sub end($) {
 	$parsetext = 0;
 }
 
+my $part1 = qr/kernel\s+BUG\s+at\s+(\S+)\s?:([0-9]+)!/;
+my $pid_line = qr/Pid:\s+[0-9]+,\s+comm:\s+.{1,20}\s+(?:Not\s+tainted|Tainted:\s+[A-Z ]+)\s+\(?([0-9.-]+\S+)\s+#/;
+
 sub text($) {
 	return unless $parsetext;
 	my $text = shift;
-	return unless $text =~ /kernel\s+BUG\s+at\s+(\S+):([0-9]+)!.*Pid:\s+[0-9]+,\s+comm:\s+.{1,20}\s+(?:Not\s+tainted|Tainted:\s+[A-Z ]+)\s+([0-9.-]+\S+)\s+#/s;
+	return unless $text =~ /$part1.*$pid_line/s;
 	my $src = $1;
 	my $line = $2;
 	my $ver = $3;
-	unless ($src =~ s|^/usr/src/packages/BUILD/kernel-[a-z]+-[0-9.]+/linux-[0-9.]+/||) {
+	unless ($src =~ s|^/usr/src/packages/BUILD/(?:kernel-[a-z]+-[0-9.]+/linux-[0-9.]+/)?||) {
 		print "no src pattern in '$src'\n";
 	}
 	$found = 1;
@@ -101,6 +110,9 @@ sub text($) {
 
 	$data->execute($user_id, $error_type_id, $proj_id, $ver, $src, $line,
 			$url) ||
+		die "cannot INSERT: " . DBI::errstr;
+	my $error_id = $dbh->last_insert_id(undef, undef, undef, undef);
+	$data1->execute($tool_id, $error_id) ||
 		die "cannot INSERT: " . DBI::errstr;
 }
 
@@ -133,6 +145,9 @@ foreach $url (@ARGV) {
 		print "\tNothing found at '$url'. The file stored as 'arg$arg'.\n";
 		open F, ">arg$arg";
 		print F $response->content;
+		close F;
+		open F, ">arg$arg.url";
+		print F "$url\n";
 		close F;
 	}
 }
