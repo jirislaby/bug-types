@@ -92,7 +92,7 @@ sub end($) {
 	$parsetext = 0;
 }
 
-my $part1 = qr/kernel\s+BUG\s+at\s+(\S+)\s?:([0-9]+)!/;
+my $part1 = qr/(?:WARNING:|kernel\s+BUG)\s+at\s+(\S+)\s?:([0-9]+)!?/;
 my $pid_line = qr/Pid:\s+[0-9]+,\s+comm:\s+.{1,20}\s+(?:Not\s+tainted|Tainted:\s+[A-Z ]+)\s+\(?([0-9.-]+\S+)\s+#/;
 
 sub text($) {
@@ -103,7 +103,7 @@ sub text($) {
 	my $line = $2;
 	my $ver = $3;
 	unless ($src =~ s|^/usr/src/packages/BUILD/(?:kernel-[a-z]+-[0-9.]+/linux-[0-9.]+/)?||) {
-		print "no src pattern in '$src'\n";
+		print "\twarning: no src pattern in '$src'\n";
 	}
 	$found = 1;
 	print "\tsss: $ver $src:$line\n";
