@@ -74,7 +74,7 @@ my $data1 = $dbh->prepare("INSERT INTO error_tool_rel(tool_id, error_id) " .
 		die "cannot prepare INSERT: " . DBI::errstr;
 
 my $parsetext = 0;
-my $url;
+my $glob_url;
 my $found;
 my $ua = LWP::UserAgent->new;
 $ua->timeout(10);
@@ -106,10 +106,10 @@ sub text($) {
 		print "\twarning: no src pattern in '$src'\n";
 	}
 	$found = 1;
-	print "\tsss: $ver $src:$line\n";
+	print "\tsss: $ver $src:$line from $glob_url\n";
 
 	$data->execute($user_id, $error_type_id, $proj_id, $ver, $src, $line,
-			$url) ||
+			$glob_url) ||
 		die "cannot INSERT: " . DBI::errstr;
 	my $error_id = $dbh->last_insert_id(undef, undef, undef, undef);
 	$data1->execute($tool_id, $error_id) ||
@@ -120,7 +120,8 @@ my $arg = 0;
 
 open FAILED, ">failed.urls";
 
-foreach $url (@ARGV) {
+foreach my $url (@ARGV) {
+	$glob_url = $url;
 	$arg++;
 	print "Fetching $url\n";
 	my $response = $ua->simple_request(HTTP::Request->new(GET => $url));
