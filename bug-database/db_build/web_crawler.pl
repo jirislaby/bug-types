@@ -130,6 +130,7 @@ foreach my $url (@ARGV) {
 		print FAILED "$url FETCH ", $response->status_line, "\n";
 		next;
 	}
+	print "\tType: ", $response->header('Content-type'), "\n";
 	print "\tParsing HTML\n";
 	$found = 0;
 	my $p = HTML::Parser->new(api_version => 3,
