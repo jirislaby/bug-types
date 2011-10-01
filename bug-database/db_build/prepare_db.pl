@@ -108,6 +108,15 @@ $data->execute("BUG/WARNING", "An unsatisfied assertion in the code", undef) ||
 		die "cannot INSERT error_type: " . DBI::errstr;
 $data->execute("div by zero", "The code tries to divide by zero", 369) ||
 		die "cannot INSERT error_type: " . DBI::errstr;
+$data->execute("Circular Locking Dependency", "There is a cycle in locking",
+		833) ||
+		die "cannot INSERT error_type: " . DBI::errstr;
+$data->execute("Double Lock", "Some lock is locked twice unintentionally in " .
+		"a sequence", 764) ||
+		die "cannot INSERT error_type: " . DBI::errstr;
+$data->execute("Double Unlock", "Some lock is unlocked twice unintentionally " .
+		"in a sequence", 765) ||
+		die "cannot INSERT error_type: " . DBI::errstr;
 
 $data = $dbh->prepare("INSERT INTO error(user, error_type, error_subtype, " .
 		"project, project_version, note, loc_file, loc_line, url, " .
