@@ -118,22 +118,22 @@ $data->execute("Double Unlock", "Some lock is unlocked twice unintentionally " .
 		"in a sequence", 765) ||
 		die "cannot INSERT error_type: " . DBI::errstr;
 
-$data = $dbh->prepare("INSERT INTO error(user, error_type, error_subtype, " .
-		"project, project_version, note, loc_file, loc_line, url, " .
-		"marking) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)") ||
-		die "cannot INSERT error: " . DBI::errstr;
-$data->execute(1, 1, undef, 1, undef, undef, "/abc", "100", undef, undef) ||
-		die "cannot INSERT error: " . DBI::errstr;
-$data->execute(1, 2, "Subtype XYZ", 1, "2.6.28", "Note this crap", "/abc",
-		"100", "http://www.fi.muni.cz", 1) ||
-		die "cannot INSERT error: " . DBI::errstr;
-my $error_id = $dbh->last_insert_id(undef, undef, undef, undef);
-
-$data = $dbh->prepare("INSERT INTO error_tool_rel(tool_id, error_id) " .
-		"VALUES (?, ?)") ||
-		die "cannot INSERT error-tool rel: " . DBI::errstr;
-$data->execute($stanse_id, $error_id) ||
-		die "cannot INSERT error-tool rel: " . DBI::errstr;
+#$data = $dbh->prepare("INSERT INTO error(user, error_type, error_subtype, " .
+#		"project, project_version, note, loc_file, loc_line, url, " .
+#		"marking) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)") ||
+#		die "cannot INSERT error: " . DBI::errstr;
+#$data->execute(1, 1, undef, 1, undef, undef, "/abc", "100", undef, undef) ||
+#		die "cannot INSERT error: " . DBI::errstr;
+#$data->execute(1, 2, "Subtype XYZ", 1, "2.6.28", "Note this crap", "/abc",
+#		"100", "http://www.fi.muni.cz", 1) ||
+#		die "cannot INSERT error: " . DBI::errstr;
+#my $error_id = $dbh->last_insert_id(undef, undef, undef, undef);
+#
+#$data = $dbh->prepare("INSERT INTO error_tool_rel(tool_id, error_id) " .
+#		"VALUES (?, ?)") ||
+#		die "cannot INSERT error-tool rel: " . DBI::errstr;
+#$data->execute($stanse_id, $error_id) ||
+#		die "cannot INSERT error-tool rel: " . DBI::errstr;
 
 $dbh->commit;
 
