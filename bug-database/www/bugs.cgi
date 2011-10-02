@@ -67,19 +67,24 @@ print $cg->h2("$$_{cid} Errors Found"), "\n";
 $data = $dbh->prepare("SELECT error.id id, error_type.name error_type, " .
 	"error_type.CWE_error CWE_error, error_subtype, error.url url, " .
 	"project.name project, project_version, loc_file, " .
-	"loc_line, user.name user, login, timestamp_enter FROM error " .
+	"loc_line, marking, user.name user, login, timestamp_enter " .
+	"FROM error " .
 	"INNER JOIN project ON error.project = project.id " .
 	"INNER JOIN error_type ON error.error_type = error_type.id " .
 	"INNER JOIN user ON error.user = user.id " .
 	"$where ORDER BY error_type, id") ||
 	die "cannot SELECT errors: " . DBI::errstr;
 $data->execute(@where_param) || die "cannot SELECT errors: " . DBI::errstr;
+
+my $counter = 0;
+
 while ($_ = $data->fetchrow_hashref) {
+	$counter++;
 #	foreach my $x (keys %$_) {
 #		print "$x -> $$_{$x}<br/>\n";
 #	}
 	my $url = $$_{url};
-	print qq(<div style="font-weight: bold;">Error $$_{id}</div>\n);
+	print qq(<div><span style="font-weight: bold;">Error $counter</span> (id $$_{id})</div>\n);
 	print qq(<div style="margin-left: 1em;">\n);
 	print qq(<div><b>Type:</b> );
 	print qq(<a href="http://cwe.mitre.org/data/definitions/$$_{CWE_error}.html">) if (defined $$_{CWE_error});
@@ -93,7 +98,11 @@ while ($_ = $data->fetchrow_hashref) {
 		if ($$_{project_version});
 	print qq(<div><b>File:</b> $$_{loc_file}</div>\n);
 	print qq(<div><b>Line:</b> $$_{loc_line}</div>\n);
-	print qq(<div><b>URL:</b> <a href="$url">$url</a></div>\n) if (defined $url);
+	print qq|<div><b>Marking:</b> $$_{marking} (-100: 100% | .
+		qq|false-positive, 0: neutral, 100: 100% real error)</div>\n|
+		if (defined $$_{marking});
+	print qq(<div><b>URL:</b> <a href="$url">$url</a></div>\n)
+		if (defined $url);
 	print qq(<div><b>Added by:</b> $$_{user} ($$_{login})</div>\n);
 	print qq(<div><b>Entry Created:</b> $$_{timestamp_enter}</div>\n);
 	my $foundby = $dbh->prepare("SELECT COUNT(tool_id) cnt " .
@@ -101,8 +110,7 @@ while ($_ = $data->fetchrow_hashref) {
 		die "cannot SELECT tools: " . DBI::errstr;
 	$foundby->execute($$_{id}) ||
 		die "cannot SELECT tools: " . DBI::errstr;
-	my $cnth = $foundby->fetchrow_hashref;
-	my $cnt = $$cnth{cnt};
+	my $cnt = ${$foundby->fetchrow_hashref}{cnt};
 	print qq(<div><b>Found by $cnt tools), $cnt ? ":" : "",
 		qq(</b></div>\n);
 	if ($cnt) {
@@ -113,8 +121,9 @@ while ($_ = $data->fetchrow_hashref) {
 		$foundby->execute($$_{id}) ||
 			die "cannot SELECT tools: " . DBI::errstr;
 		while (my $tool = $foundby->fetchrow_hashref) {
-			print qq($$tool{name});
+			print qq(<div>$$tool{name});
 			print qq( $$tool{version}) if ($$tool{version});
+			print qq(</div>\n);
 		}
 		print qq(</div>\n);
 	}
