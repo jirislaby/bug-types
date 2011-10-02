@@ -29,17 +29,23 @@ $dbh->do("PRAGMA foreign_keys = ON;");
 my $data = $dbh->prepare("SELECT id FROM project WHERE name = ?") ||
 	die "cannot fetch kernel ID";
 $data->execute($dest_proj) || die "cannot fetch kernel ID";
-my $proj_id = ${$data->fetchrow_hashref}{id};
+my $hash = $data->fetchrow_hashref;
+die "project not found in the database" unless (defined $hash);
+my $proj_id = ${$hash}{id};
 
 $data = $dbh->prepare("SELECT id FROM error_type WHERE name = ?") ||
 	die "cannot fetch error type ID";
 $data->execute($error_type) || die "cannot fetch error type ID";
-my $error_type_id = ${$data->fetchrow_hashref}{id};
+$hash = $data->fetchrow_hashref;
+die "error type not found in the database" unless (defined $hash);
+my $error_type_id = ${$hash}{id};
 
 $data = $dbh->prepare("SELECT id FROM user WHERE login = ?") ||
 	die "cannot fetch user ID";
 $data->execute($user) || die "cannot fetch user ID";
-my $user_id = ${$data->fetchrow_hashref}{id};
+$hash = $data->fetchrow_hashref;
+die "user not found in the database" unless (defined $hash);
+my $user_id = ${$hash}{id};
 
 $data = $dbh->prepare("INSERT INTO tool(name, version, description) " .
 		"VALUES (?, ?, ?)") ||
