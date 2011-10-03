@@ -117,6 +117,15 @@ $data->execute("Double Lock", "Some lock is locked twice unintentionally in " .
 $data->execute("Double Unlock", "Some lock is unlocked twice unintentionally " .
 		"in a sequence", 765) ||
 		die "cannot INSERT error_type: " . DBI::errstr;
+$data->execute("Memory Leak", "There code omits to free some allocated memory",
+		401) ||
+		die "cannot INSERT error_type: " . DBI::errstr;
+$data->execute("Double Resource Put", "There is a try to return some " .
+		"resource to the system twice", 763) ||
+		die "cannot INSERT error_type: " . DBI::errstr;
+$data->execute("Resource Leak", "The code omits to put the resource to the " .
+		"system for reuse", 404) ||
+		die "cannot INSERT error_type: " . DBI::errstr;
 
 #$data = $dbh->prepare("INSERT INTO error(user, error_type, error_subtype, " .
 #		"project, project_version, note, loc_file, loc_line, url, " .
