@@ -81,7 +81,7 @@ $data->execute("Stanse", "2", "http://stanse.fi.muni.cz/",
 		"Taking a firm stanse on bugs") ||
 		die "cannot INSERT tool: " . DBI::errstr;
 my $stanse_id = $dbh->last_insert_id(undef, undef, undef, undef);
-$data->execute("Soberity", "100012211.2434.3", undef,
+$data->execute("Testing", "100012211.2434.3", undef,
 		"Lorem Ipsum is simply dummy text of the printing and" .
 		"typesetting industry. Lorem Ipsum has been the industry's " .
 		"standard dummy text ever since the 1500s, when an unknown " .
