@@ -104,7 +104,7 @@ $data->execute("Linux Kernel", "http://www.kernel.org/", undef) ||
 $data = $dbh->prepare("INSERT INTO error_type(name, short_description, " .
 		"CWE_error) VALUES (?, ?, ?)") ||
 		die "cannot INSERT error_type: " . DBI::errstr;
-$data->execute("BUG/WARNING", "An unsatisfied assertion in the code", undef) ||
+$data->execute("BUG/WARNING", "An unsatisfied assertion in the code", 617) ||
 		die "cannot INSERT error_type: " . DBI::errstr;
 $data->execute("div by zero", "The code tries to divide by zero", 369) ||
 		die "cannot INSERT error_type: " . DBI::errstr;
