@@ -60,8 +60,10 @@ while ($_ = $data->fetchrow_hashref) {
 	print qq(<div style="font-weight: bold;"><a href="bugs.cgi?type=$$_{id}">$$_{name}</a></div>\n);
 	print qq(<div style="margin-left: 1em;">\n);
 	print qq(<div><b>Short Description:</b> $$_{short_description}</div>\n);
-	print qq(<div><b>Description:</b> $$_{description}</div>\n)
-		if ($$_{description});
+	if (defined $$_{CWE_error}) {
+		my $url = "http://cwe.mitre.org/data/definitions/$$_{CWE_error}.html";
+		print qq(<div><b>CWE URL:</b> <a href="$url">$url</a></div>\n);
+	}
 	print qq(</div>\n);
 }
 
