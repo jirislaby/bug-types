@@ -51,7 +51,7 @@ while ($_ = $data->fetchrow_hashref) {
 	print qq(</div>\n);
 }
 
-print $cg->h2('Errors to Be Found'), "\n";
+print $cg->h2('Errors Found'), "\n";
 $data = $dbh->prepare("SELECT * FROM error_type ORDER BY name") ||
 	die "cannot SELECT error types: " . DBI::errstr;
 $data->execute || die "cannot SELECT error types: " . DBI::errstr;
