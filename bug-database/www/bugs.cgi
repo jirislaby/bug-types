@@ -20,8 +20,8 @@ my $title;
 
 if (defined $cg->param('all') && $cg->param('all') == 1) {
 	$title = "All Bugs";
-	$where = "";
-	@where_param = ();
+	$where = "" . "WHERE error.project_version == ?";
+	@where_param = ("2.6.28");
 } elsif (defined $cg->param('tool')) {
 	my $tool = $cg->param('tool');
 	$data = $dbh->prepare("SELECT name FROM tool WHERE id == ?") ||
@@ -30,8 +30,8 @@ if (defined $cg->param('all') && $cg->param('all') == 1) {
 	$_ = $data->fetchrow_hashref;
 	$title = $_ ? "Bugs Found by $$_{name}" : "Bugs Found";
 	$where = "WHERE error.id IN (SELECT error_id FROM error_tool_rel " .
-		"WHERE tool_id == ?)";
-	@where_param = ($tool);
+		"WHERE tool_id == ?)" . " AND error.project_version == ?";
+	@where_param = ($tool, "2.6.28");
 } elsif (defined $cg->param('proj')) {
 	my $proj = $cg->param('proj');
 	$data = $dbh->prepare("SELECT name FROM project WHERE id == ?") ||
@@ -39,8 +39,8 @@ if (defined $cg->param('all') && $cg->param('all') == 1) {
 	$data->execute($proj) || die "cannot SELECT project: " . DBI::errstr;
 	$_ = $data->fetchrow_hashref;
 	$title = $_ ? "Bugs Found in $$_{name}" : "Bugs Found";
-	$where = "WHERE error.project == ?";
-	@where_param = ($proj);
+	$where = "WHERE error.project == ?" . " AND error.project_version == ?";
+	@where_param = ($proj, "2.6.28");
 } elsif (defined $cg->param('type')) {
 	my $type = $cg->param('type');
 	$data = $dbh->prepare("SELECT name FROM error_type WHERE id == ?") ||
@@ -48,8 +48,9 @@ if (defined $cg->param('all') && $cg->param('all') == 1) {
 	$data->execute($type) || die "cannot SELECT error type: " . DBI::errstr;
 	$_ = $data->fetchrow_hashref;
 	$title = $_ ? "Bugs of Type $$_{name}" : "Bugs Found";
-	$where = "WHERE error.error_type == ?";
-	@where_param = ($type);
+	$where = "WHERE error.error_type == ?" .
+		" AND error.project_version == ?";
+	@where_param = ($type, "2.6.28");
 } else {
 	print $cg->h2('Invalid query'), "\n";
 	goto end;
