@@ -95,7 +95,7 @@ foreach my $error ($errors->get_nodelist) {
 	$unit =~ s@/\.tmp_@/@;
 	$unit =~ s@\.o\.preproc$@.c@;
 	$data->execute($user_id, $error_type_id, $proj_id, $dest_proj_ver,
-			$unit, $loc->findvalue("line"), $fp_bug * 100) ||
+			$unit, $loc->findvalue("line"), $fp_bug) ||
 		die "cannot INSERT: " . DBI::errstr;
 	my $error_id = $dbh->last_insert_id(undef, undef, undef, undef);
 	$data1->execute($tool_id, $error_id) ||

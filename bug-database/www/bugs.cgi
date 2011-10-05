@@ -103,9 +103,15 @@ while ($_ = $data->fetchrow_hashref) {
 #		if ($$_{project_version});
 	print qq(<div><b>File:</b> $$_{loc_file}</div>\n);
 	print qq(<div><b>Line:</b> $$_{loc_line}</div>\n);
-	print qq|<div><b>Marking:</b> $$_{marking} (-100: 100% | .
-		qq|false-positive, 0: neutral, 100: 100% real error)</div>\n|
-		if (defined $$_{marking});
+	print qq(<div><b>Marking:</b> );
+	if ($$_{marking} > 0) {
+		print qq(<span style="color: red;">real error</span>);
+	} elsif ($$_{marking} < 0) {
+		print qq(<span style="color: green;">false positive</span>);
+	} else {
+		print qq(unclassified);
+	}
+	print qq(</div>);
 	print qq(<div><b>URL:</b> <a href="$url">$url</a></div>\n)
 		if (defined $url);
 	print qq(<div><b>Added by:</b> $$_{user} ($$_{login})</div>\n);
