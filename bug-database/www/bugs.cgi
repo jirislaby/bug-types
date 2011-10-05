@@ -94,13 +94,13 @@ while ($_ = $data->fetchrow_hashref) {
 	print qq(</div>\n);
 	print qq(<div><b>Subtype:</b> $$_{error_subtype}</div>\n)
 		if ($$_{error_subtype});
-	print qq(<div><b>Project:</b> );
-	print qq(<a href="$$_{project_url}">) if ($$_{project_url});
-	print qq($$_{project});
-	print qq(</a>) if ($$_{project_url});
-	print qq(</div>\n);
-	print qq(<div><b>Project Version:</b> $$_{project_version}</div>\n)
-		if ($$_{project_version});
+#	print qq(<div><b>Project:</b> );
+#	print qq(<a href="$$_{project_url}">) if ($$_{project_url});
+#	print qq($$_{project});
+#	print qq(</a>) if ($$_{project_url});
+#	print qq(</div>\n);
+#	print qq(<div><b>Project Version:</b> $$_{project_version}</div>\n)
+#		if ($$_{project_version});
 	print qq(<div><b>File:</b> $$_{loc_file}</div>\n);
 	print qq(<div><b>Line:</b> $$_{loc_line}</div>\n);
 	print qq|<div><b>Marking:</b> $$_{marking} (-100: 100% | .
@@ -129,8 +129,8 @@ while ($_ = $data->fetchrow_hashref) {
 			print qq(<div>);
 			print qq(<a href="$$tool{url}">) if ($$tool{url});
 			print qq($$tool{name});
-			print qq(</a>) if ($$tool{url});
 			print qq( $$tool{version}) if ($$tool{version});
+			print qq(</a>) if ($$tool{url});
 			print qq(</div>\n);
 		}
 		print qq(</div>\n);
