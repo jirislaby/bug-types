@@ -44,7 +44,7 @@ $dbh->do("CREATE TABLE error(id INTEGER PRIMARY KEY, user INT NOT NULL, " .
 		"timestamp_enter DATETIME DEFAULT CURRENT_TIMESTAMP, " .
 		"timestamp_lastmod DATETIME, " .
 		"timestamp_found DATETIME, " .
-		"marking INT, " .
+		"marking INT NOT NULL, " .
 		"UNIQUE(error_type, error_subtype, project, project_version, " .
 			"loc_file, loc_line)" .
 		"FOREIGN KEY(user) REFERENCES user(id), " .
