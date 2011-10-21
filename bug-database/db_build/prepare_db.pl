@@ -120,11 +120,24 @@ $data->execute("Double Unlock", "Some lock is unlocked twice unintentionally " .
 $data->execute("Memory Leak", "There code omits to free some allocated memory",
 		401) ||
 		die "cannot INSERT error_type: " . DBI::errstr;
+$data->execute("NULL Pointer Dereference", "A pointer which is NULL " .
+		"is being dereferenced", 476) ||
+		die "cannot INSERT error_type: " . DBI::errstr;
+$data->execute("Use After Free", "Dereferencing a pointer that points to an " .
+		"already freed memory", 416) ||
+		die "cannot INSERT error_type: " . DBI::errstr;
+$data->execute("Double Free", "Freeing function is called twice on teh same " .
+		"address", 415) ||
+		die "cannot INSERT error_type: " . DBI::errstr;
 $data->execute("Double Resource Put", "There is a try to return some " .
 		"resource to the system twice", 763) ||
 		die "cannot INSERT error_type: " . DBI::errstr;
 $data->execute("Resource Leak", "The code omits to put the resource to the " .
 		"system for reuse", 404) ||
+		die "cannot INSERT error_type: " . DBI::errstr;
+$data->execute("Improper Handling of Exceptional Conditions", "Incorrectly " .
+		"handled fail-path in the code leading to a deadlock for " .
+		"example", 755) ||
 		die "cannot INSERT error_type: " . DBI::errstr;
 
 #$data = $dbh->prepare("INSERT INTO error(user, error_type, error_subtype, " .
