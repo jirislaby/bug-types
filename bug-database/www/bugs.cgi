@@ -14,14 +14,17 @@ my $dbh = DBI->connect("dbi:SQLite:dbname=database.db","","") ||
 	die "connect to db error: " . DBI::errstr;
 my $data;
 
-my $where;
-my @where_param;
+my $where = "WHERE error.project_version == ?";
+my @where_param = ("2.6.28");
 my $title;
+
+if (defined $cg->param('marking')) {
+	$where .= " AND error.marking == ?";
+	push @where_param, $cg->param('marking');
+}
 
 if (defined $cg->param('all') && $cg->param('all') == 1) {
 	$title = "All Bugs";
-	$where = "" . "WHERE error.project_version == ?";
-	@where_param = ("2.6.28");
 } elsif (defined $cg->param('tool')) {
 	my $tool = $cg->param('tool');
 	$data = $dbh->prepare("SELECT name FROM tool WHERE id == ?") ||
@@ -29,9 +32,9 @@ if (defined $cg->param('all') && $cg->param('all') == 1) {
 	$data->execute($tool) || die "cannot SELECT tool: " . DBI::errstr;
 	$_ = $data->fetchrow_hashref;
 	$title = $_ ? "Bugs Found by $$_{name}" : "Bugs Found";
-	$where = "WHERE error.id IN (SELECT error_id FROM error_tool_rel " .
-		"WHERE tool_id == ?)" . " AND error.project_version == ?";
-	@where_param = ($tool, "2.6.28");
+	$where .= " AND error.id IN (SELECT error_id FROM error_tool_rel " .
+		"WHERE tool_id == ?)";
+	push @where_param, $tool;
 } elsif (defined $cg->param('proj')) {
 	my $proj = $cg->param('proj');
 	$data = $dbh->prepare("SELECT name FROM project WHERE id == ?") ||
@@ -39,8 +42,8 @@ if (defined $cg->param('all') && $cg->param('all') == 1) {
 	$data->execute($proj) || die "cannot SELECT project: " . DBI::errstr;
 	$_ = $data->fetchrow_hashref;
 	$title = $_ ? "Bugs Found in $$_{name}" : "Bugs Found";
-	$where = "WHERE error.project == ?" . " AND error.project_version == ?";
-	@where_param = ($proj, "2.6.28");
+	$where .= " AND error.project == ?";
+	push @where_param, $proj;
 } elsif (defined $cg->param('type')) {
 	my $type = $cg->param('type');
 	$data = $dbh->prepare("SELECT name FROM error_type WHERE id == ?") ||
@@ -48,9 +51,8 @@ if (defined $cg->param('all') && $cg->param('all') == 1) {
 	$data->execute($type) || die "cannot SELECT error type: " . DBI::errstr;
 	$_ = $data->fetchrow_hashref;
 	$title = $_ ? "Bugs of Type $$_{name}" : "Bugs Found";
-	$where = "WHERE error.error_type == ?" .
-		" AND error.project_version == ?";
-	@where_param = ($type, "2.6.28");
+	$where .= " AND error.error_type == ?";
+	push @where_param, $type;
 } else {
 	print $cg->h2('Invalid query'), "\n";
 	goto end;

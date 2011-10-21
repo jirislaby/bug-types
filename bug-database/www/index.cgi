@@ -3,6 +3,14 @@ use strict;
 use CGI ':standard';
 use DBI;
 
+sub hyperlink_if_nonzero($$) {
+	my $cnt = shift;
+	my $contents = shift;
+	return $cnt unless ($cnt);
+	$contents =~ s/&/&amp;/g;
+	return qq(<a href="$contents">$cnt</a>);
+}
+
 my $cg=new CGI;
 $cg->default_dtd('-//W3C//DTD XHTML 1.0 Strict//EN',
                 'http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd');
@@ -35,23 +43,44 @@ print $cg->p(qq(This is a database of known bugs and false positives in real ) .
 		$cg->a({href => 'mailto:trtik@fi.muni.cz'}, "Marek Trtik"));
 
 print $cg->h2('Errors in the Database'), "\n";
-$data = $dbh->prepare("SELECT error_type.*, count(error.id) cid " .
+$data = $dbh->prepare("SELECT error_type.*, count(error.id) cid, " .
+	"(SELECT count(error.id) FROM error WHERE error.marking < 0 AND " .
+		"error.error_type == error_type.id AND " .
+		"error.project_version == ?) cfp, " .
+	"(SELECT count(error.id) FROM error WHERE (error.marking == 0 OR " .
+			"error.marking IS NULL) AND " .
+		"error.error_type == error_type.id AND " .
+		"error.project_version == ?) cun, " .
+	"(SELECT count(error.id) FROM error WHERE error.marking > 0 AND " .
+		"error.error_type == error_type.id AND " .
+		"error.project_version == ?) crb " .
 	"FROM error_type, error WHERE error.error_type==error_type.id AND " .
 	"error.project_version == ? " .
 	"GROUP BY error_type.name ORDER BY error_type.name") ||
 	die "cannot SELECT error types: " . DBI::errstr;
-$data->execute("2.6.28") || die "cannot SELECT error types: " . DBI::errstr;
+$data->execute("2.6.28", "2.6.28", "2.6.28", "2.6.28") ||
+	die "cannot SELECT error types: " . DBI::errstr;
 print qq(<table border="1" cellspacing="0">\n);
 print qq(<tr style="background-color: #cccccc;">\n);
-print qq( <td><b>Category</b><br/><small>Description</small></td>\n);
+print qq( <td><b><span style="color: #0066CC;">Category</span></b><br/>\n),
+      qq(  <small>Description</small></td>\n);
 print qq( <td><b><a href="http://www.cwe.org">CWE</a> ID</b></td>\n);
-print qq( <td><b>Count</b></td>\n);
+print qq( <td><b>Real Errors</b></td>\n);
+print qq( <td><b>False Positives</b></td>\n);
+print qq( <td><b>Unclassified</b></td>\n);
+print qq( <td><b>Overall Count</b></td>\n);
 print qq(</tr>\n);
 my $cnt = 0;
+my $cnt_rb = 0;
+my $cnt_fp = 0;
+my $cnt_un = 0;
 while ($_ = $data->fetchrow_hashref) {
 	$cnt += $$_{cid};
+	$cnt_rb += $$_{crb};
+	$cnt_fp += $$_{cfp};
+	$cnt_un += $$_{cun};
 	print qq(<tr>\n),
-		qq( <td><a href="bugs.cgi?type=$$_{id}">$$_{name}</a><br/>\n),
+		qq( <td><span style="color: #0066CC;">$$_{name}</span><br/>\n),
 		qq( <small>$$_{short_description}</small></td>\n),
 		qq( <td align="center">);
 	if (defined $$_{CWE_error}) {
@@ -61,14 +90,36 @@ while ($_ = $data->fetchrow_hashref) {
 		print qq(N/A);
 	}
 	print qq(</td>\n),
-		qq( <td align="center">$$_{cid}</td>\n),
-		qq(</tr>\n);
+	      qq( <td align="center">),
+	      hyperlink_if_nonzero($$_{crb}, "bugs.cgi?type=$$_{id}&marking=1"),
+	      qq(</td>\n),
+	      qq( <td align="center">),
+	      hyperlink_if_nonzero($$_{cfp}, "bugs.cgi?type=$$_{id}&marking=-1"),
+	      qq(</td>\n),
+	      qq( <td align="center">),
+	      hyperlink_if_nonzero($$_{cun}, "bugs.cgi?type=$$_{id}&marking=0"),
+	      qq(</td>\n),
+	      qq( <td align="center">),
+	      hyperlink_if_nonzero($$_{cid}, "bugs.cgi?type=$$_{id}"),
+	      qq(</td>\n),
+	      qq(</tr>\n);
 }
 print qq(<tr style="background-color: #cccccc;">\n),
-	qq( <td colspan="2"><a href="bugs.cgi?all=1">All Bugs</a></td>\n),
-	qq( <td align="center">$cnt</td>\n),
-	qq(</tr>\n),
-	qq(</table>);
+      qq( <td colspan="2"><b><span style="color: #0066CC;">All Bugs</span></b></td>\n),
+      qq( <td align="center">),
+      hyperlink_if_nonzero($cnt_rb, "bugs.cgi?all=1&marking=1"),
+      qq(</td>\n),
+      qq( <td align="center">),
+      hyperlink_if_nonzero($cnt_fp, "bugs.cgi?all=1&marking=-1"),
+      qq(</td>\n),
+      qq( <td align="center">),
+      hyperlink_if_nonzero($cnt_un, "bugs.cgi?all=1&marking=0"),
+      qq(</td>\n),
+      qq( <td align="center">),
+      hyperlink_if_nonzero($cnt, "bugs.cgi?all=1"),
+      qq(</td>\n),
+      qq(</tr>\n),
+      qq(</table>);
 
 print $cg->h2('Tools Used'), "\n";
 $data = $dbh->prepare("SELECT * FROM tool ORDER BY name, version") ||
