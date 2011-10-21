@@ -87,19 +87,19 @@ while ($_ = $data->fetchrow_hashref) {
 		if ($$_{description});
 }
 
-print $cg->h2('Checked Projects'), "\n";
-$data = $dbh->prepare("SELECT * FROM project ORDER BY name") ||
-	die "cannot SELECT projects: " . DBI::errstr;
-$data->execute || die "cannot SELECT projects: " . DBI::errstr;
-while ($_ = $data->fetchrow_hashref) {
-	my $url = $$_{url};
-	print qq(<div style="font-weight: bold;"><a href="bugs.cgi?proj=$$_{id}">$$_{name}</a></div>\n);
-	print qq(<div style="margin-left: 1em;">\n);
-	print qq(<div><b>URL:</b> <a href="$url">$url</a></div>\n) if ($url);
-	print qq(<div><b>Description:</b> $$_{description}</div>\n)
-		if ($$_{description});
-	print qq(</div>\n);
-}
+#print $cg->h2('Checked Projects'), "\n";
+#$data = $dbh->prepare("SELECT * FROM project ORDER BY name") ||
+#	die "cannot SELECT projects: " . DBI::errstr;
+#$data->execute || die "cannot SELECT projects: " . DBI::errstr;
+#while ($_ = $data->fetchrow_hashref) {
+#	my $url = $$_{url};
+#	print qq(<div style="font-weight: bold;"><a href="bugs.cgi?proj=$$_{id}">$$_{name}</a></div>\n);
+#	print qq(<div style="margin-left: 1em;">\n);
+#	print qq(<div><b>URL:</b> <a href="$url">$url</a></div>\n) if ($url);
+#	print qq(<div><b>Description:</b> $$_{description}</div>\n)
+#		if ($$_{description});
+#	print qq(</div>\n);
+#}
 
 $dbh->disconnect;
 

@@ -68,7 +68,8 @@ print $cg->h2("$$_{cid} Errors Found"), "\n";
 $data = $dbh->prepare("SELECT error.id id, error_type.name error_type, " .
 	"error_type.CWE_error CWE_error, error_subtype, error.url url, " .
 	"project.name project, project.url project_url, project_version, " .
-	"loc_file, loc_line, marking, user.name user, login, timestamp_enter " .
+	"loc_file, loc_line, marking, note, user.name user, login, " .
+	"timestamp_enter " .
 	"FROM error " .
 	"INNER JOIN project ON error.project = project.id " .
 	"INNER JOIN error_type ON error.error_type = error_type.id " .
@@ -116,6 +117,7 @@ while ($_ = $data->fetchrow_hashref) {
 		if (defined $url);
 	print qq(<div><b>Added by:</b> $$_{user} ($$_{login})</div>\n);
 	print qq(<div><b>Entry Created:</b> $$_{timestamp_enter}</div>\n);
+	print qq(<div><b>Note:</b> $$_{note}</div>\n) if (defined $$_{note});
 	my $foundby = $dbh->prepare("SELECT COUNT(tool_id) cnt " .
 		"FROM error_tool_rel WHERE error_id == ?") ||
 		die "cannot SELECT tools: " . DBI::errstr;
