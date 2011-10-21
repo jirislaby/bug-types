@@ -126,7 +126,7 @@ $data->execute("NULL Pointer Dereference", "A pointer which is NULL " .
 $data->execute("Use After Free", "Dereferencing a pointer that points to an " .
 		"already freed memory", 416) ||
 		die "cannot INSERT error_type: " . DBI::errstr;
-$data->execute("Double Free", "Freeing function is called twice on teh same " .
+$data->execute("Double Free", "Freeing function is called twice on the same " .
 		"address", 415) ||
 		die "cannot INSERT error_type: " . DBI::errstr;
 $data->execute("Double Resource Put", "There is a try to return some " .
