@@ -77,23 +77,10 @@ $data->execute("Jiri Slaby", "FI MU", "jirislaby", unix_md5_crypt("ble")) ||
 $data = $dbh->prepare("INSERT INTO tool(name, version, url, description) " .
 		"VALUES (?, ?, ?, ?)") ||
 		die "cannot INSERT tool: " . DBI::errstr;
-$data->execute("Stanse", "2", "http://stanse.fi.muni.cz/",
+$data->execute("Stanse", "1", "http://stanse.fi.muni.cz/",
 		"Taking a firm stanse on bugs") ||
 		die "cannot INSERT tool: " . DBI::errstr;
 my $stanse_id = $dbh->last_insert_id(undef, undef, undef, undef);
-$data->execute("Testing", "100012211.2434.3", undef,
-		"Lorem Ipsum is simply dummy text of the printing and" .
-		"typesetting industry. Lorem Ipsum has been the industry's " .
-		"standard dummy text ever since the 1500s, when an unknown " .
-		"printer took a galley of type and scrambled it to make a " .
-		"type specimen book. It has survived not only five " .
-		"centuries, but also the leap into electronic typesetting, " .
-		"remaining essentially unchanged. It was popularised in the " .
-		"1960s with the release of Letraset sheets containing Lorem " .
-		"Ipsum passages, and more recently with desktop publishing " .
-		"software like Aldus PageMaker including versions of Lorem " .
-		"Ipsum.") ||
-		die "cannot INSERT tool: " . DBI::errstr;
 
 $data = $dbh->prepare("INSERT INTO project(name, url, description) " .
 		"VALUES (?, ?, ?)") ||
@@ -135,9 +122,13 @@ $data->execute("Double Resource Put", "There is a try to return some " .
 $data->execute("Resource Leak", "The code omits to put the resource to the " .
 		"system for reuse", 404) ||
 		die "cannot INSERT error_type: " . DBI::errstr;
-$data->execute("Improper Handling of Exceptional Conditions", "Incorrectly " .
-		"handled fail-path in the code leading to a deadlock for " .
-		"example", 755) ||
+$data->execute("Leaving function in locked state", "Some lock is not " .
+		"unlocked on all paths of a function, so it is leaked",
+		undef) ||
+		die "cannot INSERT error_type: " . DBI::errstr;
+$data->execute("Calling function from invalid context", "Some function is " .
+		"called at inappropriate place like sleep inside critical " .
+		"sections or interrupt handlers", undef) ||
 		die "cannot INSERT error_type: " . DBI::errstr;
 
 #$data = $dbh->prepare("INSERT INTO error(user, error_type, error_subtype, " .
