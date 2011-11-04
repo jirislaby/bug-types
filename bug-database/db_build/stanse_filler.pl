@@ -4,7 +4,7 @@ use XML::XPath;
 use DBI;
 
 my $tool_name = "Stanse";
-my $tool_ver = "2";
+my $tool_ver = "1";
 
 my $dest_proj = "Linux Kernel";
 my $dest_proj_ver = "2.6.28";
@@ -57,7 +57,7 @@ $data = $dbh->prepare("SELECT id FROM tool WHERE name = ? AND version = ?") ||
 	die "cannot fetch tool ID";
 $data->execute($tool_name, $tool_ver) || die "cannot fetch tool ID";
 $hash = $data->fetchrow_hashref;
-die "user not found in the database" unless (defined $hash);
+die "tool not found in the database" unless (defined $hash);
 my $tool_id = ${$hash}{id};
 
 print "$dest_proj: $proj_id\n";
@@ -86,7 +86,6 @@ foreach my $error ($errors->get_nodelist) {
 	my $fp_bug = 0;
 	$fp_bug++ if ($xp1->exists("real-bug", $error));
 	$fp_bug-- if ($xp1->exists("false-positive", $error));
-	next unless ($fp_bug);
 
 	my ($loc) = $error->findnodes("traces/trace[1]/locations/location[last()]");
 	my $unit = $loc->findvalue("unit");
