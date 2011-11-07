@@ -1,6 +1,7 @@
 #!/usr/bin/perl -w
 use strict;
 use XML::XPath;
+use Getopt::Std;
 use DBI;
 
 my $tool_name = "Stanse";
@@ -10,19 +11,35 @@ my $dest_proj = "Linux Kernel";
 my $dest_proj_ver = "2.6.28";
 my $user = "jirislaby";
 
-die "wrong commandline. should be $0 db_error_type stanse_error_type " .
-	"dest.db src.xml [string to crop from paths]" if @ARGV < 4;
+my %opts;
+if (!getopts("c:m:n:", \%opts) || scalar @ARGV < 4) {
+	die "wrong commandline. should be:\n" .
+	"$0 db_error_type stanse_error_type dest.db src.xml " .
+	"[-c string to crop from paths] [-m conversion file] [-n note]";
+}
 
 my $error_type = $ARGV[0];
 my $stanse_error_type = $ARGV[1]; # short_desc in XML
-my $note = undef;
 my $out = $ARGV[2];
 my $in = $ARGV[3];
-my $crop = @ARGV > 4 ? $ARGV[4] : "";
+my $note = $opts{'n'};
+my $crop = $opts{'c'};
+my $conv = $opts{'m'};
+my %conv_map;
 
 if (!-e $out) {
 	print "'$out' doesn't exist!\n";
 	exit 1;
+}
+
+if (defined $conv) {
+	open(CONV, $conv) || die "cannot open $conv";
+	while (<CONV>) {
+		chomp;
+		die "invalid conv file" unless (/^(.+) ([0-9]+) (.+) ([0-9]+)$/);
+		$conv_map{"$1\x00$2"} = "$3\x00$4";
+	}
+	close CONV;
 }
 
 my $xp = XML::XPath->new(filename => "$in") || die "can't open $in";
@@ -74,7 +91,7 @@ my $data1 = $dbh->prepare("INSERT INTO error_tool_rel(tool_id, error_id) " .
 		"VALUES (?, ?)") ||
 		die "cannot prepare INSERT: " . DBI::errstr;
 
-my $croplen = length $crop;
+my $croplen = defined($crop) ? length($crop) : 0;
 my $xp1 = XML::XPath->new();
 
 my $errors = $xp->findnodes("/database/errors/error");
@@ -89,13 +106,19 @@ foreach my $error ($errors->get_nodelist) {
 
 	my ($loc) = $error->findnodes("traces/trace[1]/locations/location[last()]");
 	my $unit = $loc->findvalue("unit");
-	if (substr($unit, 0, $croplen) eq $crop) {
+	if ($croplen && substr($unit, 0, $croplen) eq $crop) {
 		$unit = substr($unit, $croplen);
 	}
 	$unit =~ s@/\.tmp_@/@;
 	$unit =~ s@\.o\.preproc$@.c@;
+	my $line = $loc->findvalue("line");
+	if (defined $conv) {
+		my $entry = $conv_map{"$unit\x00$line"};
+		die "no entry for $unit:$line in conv map" if (!defined $entry);
+		($unit, $line) = split /\x00/, $entry;
+	}
 	$data->execute($user_id, $error_type_id, $proj_id, $dest_proj_ver,
-			$unit, $loc->findvalue("line"), $fp_bug, $note) ||
+			$unit, $line, $fp_bug, $note) ||
 		die "cannot INSERT: " . DBI::errstr;
 	my $error_id = $dbh->last_insert_id(undef, undef, undef, undef);
 	$data1->execute($tool_id, $error_id) ||
