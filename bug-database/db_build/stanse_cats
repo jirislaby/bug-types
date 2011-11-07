@@ -1,10 +1,11 @@
-Calling function from invalid context@non-atomic operation in atomic@-n Non-atomic operation in atomic
+Calling function from invalid context@non-atomic operation in atomic@-nNon-atomic operation in atomic
 Double Free@releasing already released memory
 Double Lock@double lock
 Double Resource Put@double put
 Double Unlock@double unlock
 Leaving function in locked state@leaving function in locked state
+Memory Leak@memory leak - leaving function without releasing memory@-f
 NULL Pointer Dereference@dereferencing NULL pointer
-Resource Leak@leaving function with gotten variables
-Resource Leak@leaving function with potentially gotten variables
+Resource Leak@leaving function with gotten variables@-f
+Resource Leak@leaving function with potentially gotten variables@-f
 Use After Free@dereferencing dangling pointer

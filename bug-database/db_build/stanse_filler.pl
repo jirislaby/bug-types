@@ -22,12 +22,13 @@ my $stanse_error_type = shift; # short_desc in XML
 my $out = shift;
 my $in = shift;
 my %opts;
-if (!getopts("c:m:n:", \%opts) || scalar @ARGV) {
+if (!getopts("c:fm:n:", \%opts) || scalar @ARGV) {
 	die $cmdline_err;
 }
 
 my $note = $opts{'n'};
 my $crop = $opts{'c'};
+my $first_loc = $opts{'f'};
 my $conv = $opts{'m'};
 my %conv_map;
 
@@ -86,6 +87,7 @@ print "$dest_proj: $proj_id\n";
 print "$error_type: $error_type_id\n";
 print "$user: $user_id\n";
 print "tool ID: $tool_id\n";
+print "note: $note\n" if (defined $note);
 
 $data = $dbh->prepare("INSERT INTO error(user, error_type, project, " .
 		"project_version, loc_file, loc_line, marking, note) " .
@@ -99,6 +101,17 @@ my $data1 = $dbh->prepare("INSERT INTO error_tool_rel(tool_id, error_id) " .
 my $croplen = defined($crop) ? length($crop) : 0;
 my $xp1 = XML::XPath->new();
 
+sub get_loc($) {
+	my $error = shift;
+	my @loc = $error->findnodes("traces/trace[1]/locations/location");
+	return $loc[-1] unless ($first_loc);
+	my $pos = 0;
+	while ($loc[$pos]->findvalue("description") =~ /^<context>/) {
+		$pos++;
+	}
+	return $loc[$pos];
+}
+
 my $errors = $xp->findnodes("/database/errors/error");
 
 foreach my $error ($errors->get_nodelist) {
@@ -109,7 +122,7 @@ foreach my $error ($errors->get_nodelist) {
 	$fp_bug++ if ($xp1->exists("real-bug", $error));
 	$fp_bug-- if ($xp1->exists("false-positive", $error));
 
-	my ($loc) = $error->findnodes("traces/trace[1]/locations/location[last()]");
+	my $loc = get_loc($error);
 	my $unit = $loc->findvalue("unit");
 	if ($croplen && substr($unit, 0, $croplen) eq $crop) {
 		$unit = substr($unit, $croplen);
