@@ -11,17 +11,21 @@ my $dest_proj = "Linux Kernel";
 my $dest_proj_ver = "2.6.28";
 my $user = "jirislaby";
 
-my %opts;
-if (!getopts("c:m:n:", \%opts) || scalar @ARGV < 4) {
-	die "wrong commandline. should be:\n" .
+my $cmdline_err = "wrong commandline. should be:\n" .
 	"$0 db_error_type stanse_error_type dest.db src.xml " .
 	"[-c string to crop from paths] [-m conversion file] [-n note]";
+
+die $cmdline_err if (scalar @ARGV < 4);
+
+my $error_type = shift;
+my $stanse_error_type = shift; # short_desc in XML
+my $out = shift;
+my $in = shift;
+my %opts;
+if (!getopts("c:m:n:", \%opts) || scalar @ARGV) {
+	die $cmdline_err;
 }
 
-my $error_type = $ARGV[0];
-my $stanse_error_type = $ARGV[1]; # short_desc in XML
-my $out = $ARGV[2];
-my $in = $ARGV[3];
 my $note = $opts{'n'};
 my $crop = $opts{'c'};
 my $conv = $opts{'m'};
@@ -33,6 +37,7 @@ if (!-e $out) {
 }
 
 if (defined $conv) {
+	print "Using '$conv' as conv file\n";
 	open(CONV, $conv) || die "cannot open $conv";
 	while (<CONV>) {
 		chomp;
