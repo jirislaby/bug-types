@@ -1,11 +1,12 @@
 #!/usr/bin/perl -w
 use strict;
+use Helper;
 use XML::XPath;
 use Getopt::Std;
 use DBI;
 
 my $tool_name = "Stanse";
-my $tool_ver = "1";
+my $tool_ver = "1.2";
 
 my $dest_proj = "Linux Kernel";
 my $dest_proj_ver = "2.6.28";
@@ -32,11 +33,6 @@ my $first_loc = $opts{'f'};
 my $conv = $opts{'m'};
 my %conv_map;
 
-if (!-e $out) {
-	print "'$out' doesn't exist!\n";
-	exit 1;
-}
-
 if (defined $conv) {
 	print "Using '$conv' as conv file\n";
 	open(CONV, $conv) || die "cannot open $conv";
@@ -50,38 +46,17 @@ if (defined $conv) {
 
 my $xp = XML::XPath->new(filename => "$in") || die "can't open $in";
 
-my $dbh = DBI->connect("dbi:SQLite:dbname=$out","","", {AutoCommit => 0}) ||
-	die "connect to db error: " . DBI::errstr;
+my $hlp = Helper->new($out);
+my $dbh = $hlp->get_dbh;
 
-$dbh->do("PRAGMA foreign_keys = ON;");
-
-my $data = $dbh->prepare("SELECT id FROM project WHERE name = ?") ||
-	die "cannot fetch kernel ID";
-$data->execute($dest_proj) || die "cannot fetch kernel ID";
-my $hash = $data->fetchrow_hashref;
-die "project not found in the database" unless (defined $hash);
-my $proj_id = ${$hash}{id};
-
-$data = $dbh->prepare("SELECT id FROM error_type WHERE name = ?") ||
-	die "cannot fetch error type ID";
-$data->execute($error_type) || die "cannot fetch error type ID";
-$hash = $data->fetchrow_hashref;
-die "error type not found in the database" unless (defined $hash);
-my $error_type_id = ${$hash}{id};
-
-$data = $dbh->prepare("SELECT id FROM user WHERE login = ?") ||
-	die "cannot fetch user ID";
-$data->execute($user) || die "cannot fetch user ID";
-$hash = $data->fetchrow_hashref;
-die "user not found in the database" unless (defined $hash);
-my $user_id = ${$hash}{id};
-
-$data = $dbh->prepare("SELECT id FROM tool WHERE name = ? AND version = ?") ||
-	die "cannot fetch tool ID";
-$data->execute($tool_name, $tool_ver) || die "cannot fetch tool ID";
-$hash = $data->fetchrow_hashref;
-die "tool not found in the database" unless (defined $hash);
-my $tool_id = ${$hash}{id};
+my $proj_id = $hlp->get_prj($dest_proj) ||
+	die "cannot fetch project ID for '$dest_proj'";
+my $error_type_id = $hlp->get_error($error_type) ||
+	die "cannot fetch error ID for '$error_type'";
+my $user_id = $hlp->get_user($user) ||
+	die "cannot fetch user ID for '$user'";
+my $tool_id = $hlp->get_tool($tool_name, $tool_ver) ||
+	die "cannot fetch tool ID for '$tool_name'";
 
 print "$dest_proj: $proj_id\n";
 print "$error_type: $error_type_id\n";
@@ -89,7 +64,7 @@ print "$user: $user_id\n";
 print "tool ID: $tool_id\n";
 print "note: $note\n" if (defined $note);
 
-$data = $dbh->prepare("INSERT INTO error(user, error_type, project, " .
+my $data = $dbh->prepare("INSERT INTO error(user, error_type, project, " .
 		"project_version, loc_file, loc_line, marking, note) " .
 		"VALUES (?, ?, ?, ?, ?, ?, ?, ?)") ||
 		die "cannot prepare INSERT: " . DBI::errstr;
@@ -144,7 +119,5 @@ foreach my $error ($errors->get_nodelist) {
 }
 
 $dbh->commit;
-
-$dbh->disconnect;
 
 0;
