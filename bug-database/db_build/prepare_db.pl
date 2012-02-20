@@ -39,7 +39,8 @@ $dbh->do("CREATE TABLE error(id INTEGER PRIMARY KEY, user INT NOT NULL, " .
 		"error_type INT NOT NULL, error_subtype STRING, " .
 		"project INT NOT NULL, project_version VARCHAR(32), " .
 		"note STRING, " .
-		"loc_file STRING NOT NULL, loc_line INT NOT NULL, " .
+		"loc_file STRING NOT NULL, loc_file_hash STRING, " .
+		"loc_line INT NOT NULL, " .
 		"url STRING, " .
 		"timestamp_enter DATETIME DEFAULT CURRENT_TIMESTAMP, " .
 		"timestamp_lastmod DATETIME, " .
