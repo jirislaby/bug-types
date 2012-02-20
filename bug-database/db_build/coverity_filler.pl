@@ -16,6 +16,8 @@ die "wrong commandline. should be $0 dest.db src.txt" if @ARGV < 2;
 my $out = $ARGV[0];
 my $in = $ARGV[1];
 
+open(INPUT, "<", $in) || die "cannot open '$in' for reading";
+
 my $hlp = Helper->new($out) || die "helper failed to open db!";
 my $dbh = $hlp->get_dbh;
 
@@ -40,10 +42,31 @@ my $data1 = $dbh->prepare("INSERT INTO error_tool_rel(tool_id, error_id) " .
 		"VALUES (?, ?)") ||
 		die "cannot prepare INSERT: " . DBI::errstr;
 
-while (<>) {
-	my $short_desc = "";
+my $state = 0;
+my $type;
+my $file;
 
-	my $fp_bug = 0;
+while (<INPUT>) {
+	chomp;
+	if (/^Error: (.*):$/) {
+		die "WTF" if ($state != 0);
+		$state = 1;
+		$type = $1;
+	} elsif (/^$/) {
+		die "WTF" if ($state != 2);
+		$state = 0;
+	} else {
+		die "WTF" if ($state != 1 && $state != 2);
+		die if (!/^([^ ]+):([0-9]+): (.*)$/);
+		if ($state == 2 && $file ne $1) {
+			die "HM";
+		}
+		$state = 2;
+		$file = $1;
+		my $line = $2;
+		my $err = $3;
+	}
+	my $short_desc = "";
 
 	my $loc = 0;
 	my $unit = "";
@@ -56,5 +79,7 @@ while (<>) {
 }
 
 $dbh->commit;
+
+close INPUT;
 
 0;
