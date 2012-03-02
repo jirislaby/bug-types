@@ -3,7 +3,7 @@ Double Free@releasing already released memory
 Double Lock@double lock
 Double Resource Put@double put
 Double Unlock@double unlock
-Leaving function in locked state@leaving function in locked state
+Leaving function in locked state@leaving function in locked state@-r
 Memory Leak@memory leak - leaving function without releasing memory@-f
 NULL Pointer Dereference@dereferencing NULL pointer
 Resource Leak@leaving function with gotten variables@-f

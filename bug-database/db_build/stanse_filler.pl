@@ -23,7 +23,7 @@ my $stanse_error_type = shift; # short_desc in XML
 my $out = shift;
 my $in = shift;
 my %opts;
-if (!getopts("c:fm:n:", \%opts) || scalar @ARGV) {
+if (!getopts("c:fm:n:r", \%opts) || scalar @ARGV) {
 	die $cmdline_err;
 }
 
@@ -31,7 +31,10 @@ my $note = $opts{'n'};
 my $crop = $opts{'c'};
 my $first_loc = $opts{'f'};
 my $conv = $opts{'m'};
+my $return_loc = $opts{'r'};
 my %conv_map;
+
+die "cannot specify both -f and -r" if ($first_loc && $return_loc);
 
 if (defined $conv) {
 	print "Using '$conv' as conv file\n";
@@ -79,12 +82,23 @@ my $xp1 = XML::XPath->new();
 sub get_loc($) {
 	my $error = shift;
 	my @loc = $error->findnodes("traces/trace[1]/locations/location");
-	return $loc[-1] unless ($first_loc);
-	my $pos = 0;
-	while ($loc[$pos]->findvalue("description") =~ /^<context>/) {
-		$pos++;
+	if ($first_loc) {
+		my $pos = 0;
+		while ($loc[$pos]->findvalue("description") =~ /^<context>/) {
+			$pos++;
+		}
+		return $loc[$pos];
+	} elsif ($return_loc && $#loc > 0) {
+		my $retloc = $loc[-2];
+		my $file = $retloc->findvalue("unit");
+		my $line = $retloc->findvalue("line")->value;
+		open(LOC, "<", "$file") || die "cannot open $file";
+		my @lines = <LOC>;
+		close LOC;
+		return ($lines[$line - 1] =~ /\breturn\b/) ? $retloc : $loc[-1];
+	} else {
+		return $loc[-1];
 	}
-	return $loc[$pos];
 }
 
 my $errors = $xp->findnodes("/database/errors/error");
