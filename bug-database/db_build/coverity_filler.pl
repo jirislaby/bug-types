@@ -10,6 +10,10 @@ my $tool_ver = undef;
 my $dest_proj = "Linux Kernel";
 my $dest_proj_ver = "2.6.28";
 my $user = "jirislaby";
+my $error_type_cov = "LOCK";
+my $error_type =
+#	"Double Lock";
+	"Leaving function in locked state";
 
 die "wrong commandline. should be $0 dest.db src.txt" if @ARGV < 2;
 
@@ -23,63 +27,127 @@ my $dbh = $hlp->get_dbh;
 
 my $proj_id = $hlp->get_prj($dest_proj) ||
 	die "cannot fetch project ID for '$dest_proj'";
+my $error_type_id = $hlp->get_error($error_type) ||
+	die "cannot fetch error ID for '$error_type'";
 my $user_id = $hlp->get_user($user) ||
 	die "cannot fetch user ID for '$user'";
 my $tool_id = $hlp->get_tool($tool_name, $tool_ver) ||
 	die "cannot fetch tool ID for '$tool_name'";
 
 print "$dest_proj: $proj_id\n";
-#print "$error_type: $error_type_id\n";
+print "$error_type: $error_type_id\n";
 print "$user: $user_id\n";
 print "tool ID: $tool_id\n";
+
+sub find_dup($$$) {
+	my $dbh = shift;
+	my $unit = shift;
+	my $loc = shift;
+	my $data = $dbh->prepare("SELECT error.id cid, loc_file, loc_line, " .
+			"error_tool_rel.tool_id tool " .
+			"FROM error, error_tool_rel " .
+			"WHERE error.id == error_tool_rel.error_id AND " .
+			"tool != ? AND " .
+			"error_type = ? AND " .
+			"project = ? AND " .
+			"project_version = ? AND loc_file = ? AND " .
+			"loc_line = ?") ||
+		die "cannot prepare SELECT: $dbh->errstr";
+	$data->execute($tool_id, $error_type_id, $proj_id, "2.6.28", $unit,
+			$loc);
+	print "$unit $loc\n";
+	my $dup_id = undef;
+	while ($_ = $data->fetchrow_hashref) {
+		print "  DUP: id=$$_{cid} line=$$_{loc_line} tool=$$_{tool}\n";
+		$dup_id = $$_{cid};
+	}
+	return $dup_id;
+}
+
+my $state = 0;
+my @errors = ();
+my @errors_rel = ();
+my %errors = ();
+
+$/ = "\n\n";
+
+my $unit_line = qr/([^:]+):([0-9]+):/;
+
+while (<INPUT>) {
+	chomp;
+	die "invalid input" if (!/^Error: ([^\n]*):\n(.*)\n?$/s);
+	my $error = $1;
+	my $entry = $2;
+	next if ($error ne $error_type_cov);
+	my @lines = split /\n/, $entry;
+
+	my $loc;
+	my $unit;
+	if ($entry =~ /^$unit_line double_lock: .* twice\.$/m) {
+		$loc = $2;
+		$unit = $1;
+		next if ($error_type ne "Double Lock");
+	} elsif ($lines[-1] =~ /^$unit_line missing_unlock: Returning.*"\.$/) {
+		$loc = $2;
+		$unit = $1;
+#		my $lock = $1;
+		next if ($error_type ne "Leaving function in locked state");
+
+#		my $i;
+#		for ($i = $#lines; $i >= 0; $i--) {
+#			if (index($lines[$i], qq(locks "$lock")) >= 0) {
+#				last;
+#			}
+#			if (index($lines[$i], qq(transfer: Assigning: "$lock" = )) >= 0 &&
+#					/" = "([^"]+)";/) {
+#				$lock = $1;
+#			}
+#		}
+#		die "bad input ($lock):\n$entry\n" if ($i < 0 ||
+#			$lines[$i] !~ /^([^:]+):([0-9]+):/);
+	} else {
+		print "GAK: $lines[-1]\n";
+		next;
+	}
+
+	if (!$errors{"$unit\0$loc"}) {
+		my $dup_id = find_dup $dbh, $unit, $loc;
+		if (defined $dup_id) {
+			push @errors_rel, $dup_id;
+		} else {
+			push @errors, [ $unit, $loc ];
+		}
+		$errors{"$unit\0$loc"} = 1;
+	}
+}
+
+close INPUT;
 
 my $data = $dbh->prepare("INSERT INTO error(user, error_type, project, " .
 		"project_version, loc_file, loc_line, marking) " .
 		"VALUES (?, ?, ?, ?, ?, ?, ?)") ||
 		die "cannot prepare INSERT: " . DBI::errstr;
 
-my $data1 = $dbh->prepare("INSERT INTO error_tool_rel(tool_id, error_id) " .
+foreach (@errors) {
+	my $unit = $$_[0];
+	my $loc = $$_[1];
+	print "$unit $loc\n";
+	$data->execute($user_id, $error_type_id, $proj_id, $dest_proj_ver,
+			$unit, $loc, 0) ||
+		die "cannot INSERT: $dbh->errstr";
+	my $error_id = $dbh->last_insert_id(undef, undef, undef, undef);
+	push @errors_rel, $error_id;
+}
+
+$data = $dbh->prepare("INSERT INTO error_tool_rel(tool_id, error_id) " .
 		"VALUES (?, ?)") ||
-		die "cannot prepare INSERT: " . DBI::errstr;
+		die "cannot prepare INSERT: $dbh->errstr";
 
-my $state = 0;
-my $type;
-my $file;
-
-while (<INPUT>) {
-	chomp;
-	if (/^Error: (.*):$/) {
-		die "WTF" if ($state != 0);
-		$state = 1;
-		$type = $1;
-	} elsif (/^$/) {
-		die "WTF" if ($state != 2);
-		$state = 0;
-	} else {
-		die "WTF" if ($state != 1 && $state != 2);
-		die if (!/^([^ ]+):([0-9]+): (.*)$/);
-		if ($state == 2 && $file ne $1) {
-			die "HM";
-		}
-		$state = 2;
-		$file = $1;
-		my $line = $2;
-		my $err = $3;
-	}
-	my $short_desc = "";
-
-	my $loc = 0;
-	my $unit = "";
-#	$data->execute($user_id, $error_type_id, $proj_id, $dest_proj_ver,
-#			$unit, $loc->findvalue("line"), $fp_bug * 100) ||
-#		die "cannot INSERT: " . DBI::errstr;
-#	my $error_id = $dbh->last_insert_id(undef, undef, undef, undef);
-#	$data1->execute($tool_id, $error_id) ||
-#		die "cannot INSERT: " . DBI::errstr;
+foreach (@errors_rel) {
+	$data->execute($tool_id, $_) ||
+		die "cannot INSERT: $dbh->errstr";
 }
 
 $dbh->commit;
-
-close INPUT;
 
 0;
