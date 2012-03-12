@@ -40,25 +40,22 @@ print $cg->p(qq(This is a database of known bugs and false positives in real ) .
       $cg->p($cg->a({href => 'mailto:slaby@fi.muni.cz'}, "Jiri Slaby") . ",",
 		$cg->a({href => 'mailto:strejcek@fi.muni.cz'}, "Jan Strejcek"),
 		"and",
-		$cg->a({href => 'mailto:trtik@fi.muni.cz'}, "Marek Trtik"));
+		$cg->a({href => 'mailto:trtik@fi.muni.cz'}, "Marek Trtik")),
+      "\n";
 
 print $cg->h2('Errors in the Database'), "\n";
 $data = $dbh->prepare("SELECT error_type.*, count(error.id) cid, " .
 	"(SELECT count(error.id) FROM error WHERE error.marking < 0 AND " .
-		"error.error_type == error_type.id AND " .
-		"error.project_version == ?) cfp, " .
+		"error.error_type == error_type.id) cfp, " .
 	"(SELECT count(error.id) FROM error WHERE (error.marking == 0 OR " .
 			"error.marking IS NULL) AND " .
-		"error.error_type == error_type.id AND " .
-		"error.project_version == ?) cun, " .
+		"error.error_type == error_type.id) cun, " .
 	"(SELECT count(error.id) FROM error WHERE error.marking > 0 AND " .
-		"error.error_type == error_type.id AND " .
-		"error.project_version == ?) crb " .
-	"FROM error_type, error WHERE error.error_type==error_type.id AND " .
-	"error.project_version == ? " .
+		"error.error_type == error_type.id) crb " .
+	"FROM error_type, error WHERE error.error_type==error_type.id " .
 	"GROUP BY error_type.name ORDER BY error_type.name") ||
 	die "cannot SELECT error types: " . DBI::errstr;
-$data->execute("2.6.28", "2.6.28", "2.6.28", "2.6.28") ||
+$data->execute() ||
 	die "cannot SELECT error types: " . DBI::errstr;
 print qq(<table border="1" cellspacing="0">\n);
 print qq(<tr style="background-color: #cccccc;">\n);

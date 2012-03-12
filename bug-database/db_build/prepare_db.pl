@@ -132,7 +132,7 @@ $data->execute("Calling function from invalid context", "Some function is " .
 		"sections or interrupt handlers", undef) ||
 		die "cannot INSERT error_type: " . DBI::errstr;
 
-#$data = $dbh->prepare("INSERT INTO error(user, error_type, error_subtype, " .
+#$data = $dbh->prepare("INSERT INTO error_full(user, error_type, error_subtype, " .
 #		"project, project_version, note, loc_file, loc_line, url, " .
 #		"marking) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)") ||
 #		die "cannot INSERT error: " . DBI::errstr;

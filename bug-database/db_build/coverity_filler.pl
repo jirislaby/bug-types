@@ -123,7 +123,7 @@ while (<INPUT>) {
 
 close INPUT;
 
-my $data = $dbh->prepare("INSERT INTO error(user, error_type, project, " .
+my $data = $dbh->prepare("INSERT INTO error_full(user, error_type, project, " .
 		"project_version, loc_file, loc_line, marking) " .
 		"VALUES (?, ?, ?, ?, ?, ?, ?)") ||
 		die "cannot prepare INSERT: " . DBI::errstr;

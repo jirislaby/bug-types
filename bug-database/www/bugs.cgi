@@ -14,8 +14,8 @@ my $dbh = DBI->connect("dbi:SQLite:dbname=database.db","","") ||
 	die "connect to db error: " . DBI::errstr;
 my $data;
 
-my $where = "WHERE error.project_version == ?";
-my @where_param = ("2.6.28");
+my $where = "WHERE 1";
+my @where_param = ();
 my $title;
 
 if (defined $cg->param('marking')) {
@@ -76,7 +76,7 @@ $data = $dbh->prepare("SELECT error.id id, error_type.name error_type, " .
 	"INNER JOIN project ON error.project = project.id " .
 	"INNER JOIN error_type ON error.error_type = error_type.id " .
 	"INNER JOIN user ON error.user = user.id " .
-	"$where ORDER BY error_type, id") ||
+	"$where ORDER BY error_type, loc_file, loc_line, id") ||
 	die "cannot SELECT errors: " . DBI::errstr;
 $data->execute(@where_param) || die "cannot SELECT errors: " . DBI::errstr;
 

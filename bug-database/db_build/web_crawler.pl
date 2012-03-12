@@ -47,19 +47,6 @@ $hash = $data->fetchrow_hashref;
 die "user not found in the database" unless (defined $hash);
 my $user_id = ${$hash}{id};
 
-$data = $dbh->prepare("INSERT INTO tool(name, version, description) " .
-		"VALUES (?, ?, ?)") ||
-                die "cannot INSERT tool: " . DBI::errstr;
-my $ret = $data->execute($tool_name, $tool_ver, "Crawls web and searches for " .
-		"reported errors.");
-unless (defined $ret) {
-	print "XX=", $dbh->err, "\n";
-#	foreach my $key (keys %{$dbh->err}) {
-#		print "K  $key: $$dbh->err{$key}\n";
-#	}
-}
-#die "cannot INSERT tool: " . DBI::errstr if ($err && $dbh->err != );
-
 $data = $dbh->prepare("SELECT id FROM tool WHERE name = ? AND version = ?") ||
 	die "cannot fetch tool ID";
 $data->execute($tool_name, $tool_ver) || die "cannot fetch tool ID";
@@ -70,7 +57,7 @@ print "$error_type: $error_type_id\n";
 print "$user: $user_id\n";
 print "tool ID: $tool_id\n";
 
-$data = $dbh->prepare("INSERT INTO error(user, error_type, project, " .
+$data = $dbh->prepare("INSERT INTO error_full(user, error_type, project, " .
 		"project_version, loc_file, loc_line, url) " .
 		"VALUES (?, ?, ?, ?, ?, ?, ?)") ||
 		die "cannot prepare INSERT: " . DBI::errstr;
