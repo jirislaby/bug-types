@@ -70,8 +70,8 @@ print $cg->h2("$$_{cid} Errors Found"), "\n";
 $data = $dbh->prepare("SELECT error.id id, error_type.name error_type, " .
 	"error_type.CWE_error CWE_error, error_subtype, error.url url, " .
 	"project.name project, project.url project_url, project_version, " .
-	"loc_file, loc_line, marking, note, user.name user, login, " .
-	"timestamp_enter " .
+	"loc_file, loc_line, marking, confirmation, note, user.name user,
+	login, timestamp_enter " .
 	"FROM error " .
 	"INNER JOIN project ON error.project = project.id " .
 	"INNER JOIN error_type ON error.error_type = error_type.id " .
@@ -114,6 +114,7 @@ while ($_ = $data->fetchrow_hashref) {
 	} else {
 		print qq(unclassified);
 	}
+	print qq(<div><b>Witness:</b> $$_{confirmation}</div>\n) if ($$_{confirmation});
 	print qq(</div>);
 	print qq(<div><b>URL:</b> <a href="$url">$url</a></div>\n)
 		if (defined $url);
