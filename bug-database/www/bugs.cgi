@@ -132,7 +132,8 @@ while ($_ = $data->fetchrow_hashref) {
 	if ($cnt) {
 		print qq(<div style="margin-left: 1em;">\n);
 		$foundby = $dbh->prepare("SELECT * FROM tool WHERE id IN " .
-			"(SELECT tool_id FROM error_tool_rel WHERE error_id == ?)") ||
+			"(SELECT tool_id FROM error_tool_rel " .
+			  "WHERE error_id == ?) ORDER BY name, version") ||
 			die "cannot SELECT tools: " . DBI::errstr;
 		$foundby->execute($$_{id}) ||
 			die "cannot SELECT tools: " . DBI::errstr;
