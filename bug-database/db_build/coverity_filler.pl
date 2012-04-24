@@ -1,7 +1,6 @@
 #!/usr/bin/perl -w
 use strict;
 use Helper;
-use XML::XPath;
 use DBI;
 
 my $tool_name = "Undetermined 1";
