@@ -15,14 +15,14 @@ my $cg=new CGI;
 $cg->default_dtd('-//W3C//DTD XHTML 1.0 Strict//EN',
                 'http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd');
 print $cg->header(-charset=>"UTF-8", -expires=>"1h");
-print $cg->start_html(-dtd=>"yes", -lang=>"cs", -title=>"Bug Database",
+print $cg->start_html(-dtd=>"yes", -lang=>"cs", -title=>"ClabureDB",
 	-style=>{'src'=>'style.css'},-encoding=>"UTF-8");
 
 my $dbh = DBI->connect("dbi:SQLite:dbname=database.db","","") ||
 	die "connect to db error: " . DBI::errstr;
 my $data;
 
-print $cg->h1('The Bug Database'), "\n";
+print $cg->h1('ClabureDB'), "\n";
 
 print $cg->p(qq(This is a database of known bugs and false positives in real ) .
 		qq(software projects. So far, we support only the <b>Linux ) .
