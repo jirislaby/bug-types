@@ -36,12 +36,10 @@ print $cg->p(qq(This is a database of known bugs and false positives in real ) .
 		qq(later. This web interface of the database is also an ) .
 		qq(interim one.)), "\n",
       $cg->p(qq(If you have any questions or suggestions, please feel free ) .
-		qq(to contact us.)), "\n",
-      $cg->p($cg->a({href => 'mailto:slaby@fi.muni.cz'}, "Jiri Slaby") . ",",
-		$cg->a({href => 'mailto:strejcek@fi.muni.cz'}, "Jan Strejcek"),
-		"and",
-		$cg->a({href => 'mailto:trtik@fi.muni.cz'}, "Marek Trtik")),
-      "\n";
+		qq(to ) . $cg->a({href => 'mailto:claburedb@fi.muni.cz'},
+					qq(contact us)) .
+		qq(.)), "\n",
+      $cg->p({style => 'margin-left: 2em;'}, "The ClabureDB Team"), "\n";
 
 print $cg->h2('Errors in the Database'), "\n";
 $data = $dbh->prepare("SELECT error_type.*, count(error.id) cid, " .

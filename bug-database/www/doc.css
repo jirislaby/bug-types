@@ -1,0 +1,50 @@
+.main {
+	width: 600pt;
+	height: 100%;
+	margin: 0 auto;
+	background: #f0f0f0;
+}
+
+.top {
+	background: #d0d0f0;
+	padding: 10pt;
+}
+
+.pg_title {
+	font-size: 40pt;
+	font-family: Arial CE;
+	font-weight: bold;
+}
+
+.pg_subtitle {
+        font-size: 15pt;
+        font-family: Arial CE;
+}       
+
+h1 {
+	font-family: Arial CE;
+	font-size: 150%;
+}
+
+h2 {
+	font-family: Arial CE;
+	font-size: 120%;
+}
+
+p {
+	text-align: justify;
+}
+
+a {
+	color: #101090;
+	text-decoration: none;
+}
+
+a:hover {
+	color: black;
+	text-decoration: underline;
+}
+
+pre {
+	margin-left: 3em;
+}
