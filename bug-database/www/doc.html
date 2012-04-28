@@ -10,7 +10,7 @@
   <body>
     <div class="main">
       <div class="top">
-        <div class="pg_title"><span style="color:#001010">Clabure</span><span style="color:#e04040;">DB</span></div>
+        <div class="pg_title"><span style="color:#001010">Clabure</span><span style="color:#e03040;">DB</span></div>
         <div class="pg_subtitle">Documentation</div>
       </div>
       <div class="text">
@@ -19,36 +19,38 @@
 	<li><a href="#avail">Availability</a></li>
 	<li><a href="#install">Installation</a></li>
 	<li><a href="#webusage">Web-interface Usage</a></li>
-	<li><a href="#dbusage">Database Usage</a></li>
+	<li><a href="#dbusage">Local Database Usage</a></li>
 	<li><a href="#contact">Contact</a></li>
 	</ul>
         <h1 id="avail">Availability</h1>
-	<p>The database is available either as a <a href="http://arran.fi.muni.cz/claburedb/">web application</a> or as a separate <a href="http://sqlite.org/">SQLite 3</a> <a href="http://arran.fi.muni.cz/claburedb/database.db">database</a>. The former is good for simple queries like listing through all the errors, or errors of some kind, whereas the latter offers a full set of SQL to be executed on the database. This allows for generation of arbitrary statistics or performing various cross-queries to compare the errors with errors found by a third-party tools for example.</p>
+	<p>The database is available either as a <a href="http://claburedb.fi.muni.cz/">web application</a> or as a separate <a href="http://sqlite.org/">SQLite 3</a> <a href="mailto:claburedb@fi.muni.cz?subject=Database%20request&amp;body=We%20would%20like%20to%20ask%20you%20to%20send%20us%20the%20database%20for%20FILL%20IN%20HERE%20purposes.">database</a>. The former is good for simple queries like listing through all the errors, or errors of some kind, whereas the latter offers a full set of SQL to be executed on the database. This allows for generation of arbitrary statistics or performing various cross-queries to compare the errors with errors found by third-party tools for example.</p>
 	<h2>License</h2>
 	<p>The database is licensed under the <a href="http://opendatacommons.org/licenses/odbl/1.0/">Open Database License (ODbL) v1.0</a> terms or use.</p>
         <h1 id="install">Installation</h1>
-	<p>Obviously, the web application needs no installation steps at all. On the other hand, if you decide to download and use the database locally, you need SQLite too. It is simply a matter of downloading a client from <a href="http://sqlite.org/download.html">their website</a> and unpacking it. Then proceed with the <a href="#dbusage">Database Usage</a> section below.</p>
+	<p>Obviously, the web application needs no installation steps at all. On the other hand, if you decide to download and use the database locally, you need SQLite too. It is simply a matter of downloading a client from <a href="http://sqlite.org/download.html">their website</a> and unpacking it.</p>
+	<p>All Linux, Mac OS and Windows are supported. It may as well work on other platforms when compiled from sources. Having the client, proceed with the <a href="#dbusage">Local Database Usage</a> section below.</p>
 
 	<h1 id="webusage">Web-interface Usage</h1>
-	<p style="font-size: 200%; font-weight: bold; color: red; font-family: Arial CE;">TODO</p>
-	<h1 id="dbusage">Database Usage</h1>
+	<p style="font-size: 200%; font-weight: bold; color: red; font-family: Arial;">TODO</p>
+	<h1 id="dbusage">Local Database Usage</h1>
 	<p>Having the client, the use is as simple as:</p>
 	<pre>
-$ sqlite3 database.db 'SELECT loc_file, loc_line FROM error;'
+<span style="color:#0000f0;">sqlite3 database.db 'SELECT loc_file, loc_line FROM error;'</span>
 mm/vmalloc.c|292
 net/core/skbuff.c|147
 &hellip;</pre>
-	<p>Or with a more complicated queries like "return count of all real bugs found by tool 1 and not found by tool 2":</p>
+	<p>Here, the command-line (blue line) retrieves a list of all files and lines where a bug was found by an arbitrary tool. Or we may construct more complicated queries like "return the count of all real bugs found by tool 1 and not found by tool 2":</p>
 	<pre>
-$ sqlite3 database.db 'SELECT COUNT(id) FROM error WHERE marking &gt; 0 AND
+<span style="color:#0000f0;">sqlite3 database.db 'SELECT COUNT(id) FROM error WHERE marking &gt; 0 AND
 	id IN (SELECT error_id FROM error_tool_rel WHERE tool_id = 1) AND
-	id NOT IN (SELECT error_id FROM error_tool_rel WHERE tool_id = 2);'
+	id NOT IN (SELECT error_id FROM error_tool_rel WHERE tool_id = 2);'</span>
 105</pre>
-	<p>For even more, you more likely would need to know the database structure. It may be obtained by <tt>.schema</tt> command. Also, if you are unsure about the SQL syntax of SQLite, please refer to the <a href="http://sqlite.org/lang.html">SQLite user's manual</a>.</p>
+	<p>For even more, you more likely would need to know the database structure. It may be obtained by <tt>.schema</tt> command. Then you can execute any qury the database is able to run. If you are unsure about the SQL syntax of SQLite, please refer to the <a href="http://sqlite.org/lang.html">SQLite user's manual</a>.</p>
 	<h1 id="contact">Contact</h1>
-	<p>The database does not pretend by any means to be complete. If you have a set of classified errors from other tools, any suggestions to improve the database or the web frontend, or another data you would like to share with us, do not hesitate to contact us at <a href="mailto:claburedb@fi.muni.cz">claburedb@fi.muni.cz</a>.</p>
+	<p>The database does not pretend by any means to be complete. Do not hesitate to contact us in case you have a full set of errors reported by other tools or you have such a tool and may provide us with that. We will also appreciate any suggestions to improve the database or the web frontend, or another relevant data you would like to share with us. Finally, any kind of help to improve the database is gladly welcome. You can always reach us at <a href="mailto:claburedb@fi.muni.cz">claburedb@fi.muni.cz</a>.</p>
 
       </div>
     </div>
+    <div class="footer">Copyright (C) 2012 ClabureDB Team</div>
   </body>
 </html>
