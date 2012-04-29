@@ -67,17 +67,10 @@ print "$user: $user_id\n";
 print "tool ID: $tool_id\n";
 print "note: $note\n" if (defined $note);
 
-my $data = $dbh->prepare("INSERT INTO error_full(user, error_type, project, " .
-		"project_version, loc_file, loc_line, marking, note) " .
-		"VALUES (?, ?, ?, ?, ?, ?, ?, ?)") ||
-		die "cannot prepare INSERT: " . DBI::errstr;
-
-my $data1 = $dbh->prepare("INSERT INTO error_tool_rel(tool_id, error_id) " .
-		"VALUES (?, ?)") ||
-		die "cannot prepare INSERT: " . DBI::errstr;
-
 my $croplen = defined($crop) ? length($crop) : 0;
 my $xp1 = XML::XPath->new();
+
+$hlp->error_init($tool_id, $error_type_id, $proj_id, );
 
 sub get_loc($) {
 	my $error = shift;
@@ -103,6 +96,8 @@ sub get_loc($) {
 
 my $errors = $xp->findnodes("/database/errors/error");
 
+$hlp->error_init($tool_id, $error_type_id, $proj_id, $dest_proj_ver);
+
 foreach my $error ($errors->get_nodelist) {
 	my $short_desc = $error->findvalue("short_desc");
 	next if ($short_desc ne $stanse_error_type);
@@ -124,14 +119,11 @@ foreach my $error ($errors->get_nodelist) {
 		die "no entry for $unit:$line in conv map" if (!defined $entry);
 		($unit, $line) = split /\x00/, $entry;
 	}
-	$data->execute($user_id, $error_type_id, $proj_id, $dest_proj_ver,
-			$unit, $line, $fp_bug, $note) ||
-		die "cannot INSERT: " . DBI::errstr;
-	my $error_id = $dbh->last_insert_id(undef, undef, undef, undef);
-	$data1->execute($tool_id, $error_id) ||
-		die "cannot INSERT: " . DBI::errstr;
+	$hlp->error_add($unit, $line, $fp_bug);
 }
 
-$dbh->commit;
+$errors = undef;
 
-0;
+$hlp->error_push($user_id, $note);
+
+1;

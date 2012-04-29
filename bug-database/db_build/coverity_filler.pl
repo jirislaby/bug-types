@@ -38,35 +38,9 @@ print "$error_type: $error_type_id\n";
 print "$user: $user_id\n";
 print "tool ID: $tool_id\n";
 
-sub find_dup($$$) {
-	my $dbh = shift;
-	my $unit = shift;
-	my $loc = shift;
-	my $data = $dbh->prepare("SELECT error.id cid, loc_file, loc_line, " .
-			"error_tool_rel.tool_id tool " .
-			"FROM error, error_tool_rel " .
-			"WHERE error.id == error_tool_rel.error_id AND " .
-			"tool != ? AND " .
-			"error_type = ? AND " .
-			"project = ? AND " .
-			"project_version = ? AND loc_file = ? AND " .
-			"loc_line = ?") ||
-		die "cannot prepare SELECT: $dbh->errstr";
-	$data->execute($tool_id, $error_type_id, $proj_id, "2.6.28", $unit,
-			$loc);
-	print "$unit $loc\n";
-	my $dup_id = undef;
-	while ($_ = $data->fetchrow_hashref) {
-		print "  DUP: id=$$_{cid} line=$$_{loc_line} tool=$$_{tool}\n";
-		$dup_id = $$_{cid};
-	}
-	return $dup_id;
-}
-
 my $state = 0;
-my @errors = ();
-my @errors_rel = ();
-my %errors = ();
+
+$hlp->error_init($tool_id, $error_type_id, $proj_id, "2.6.28");
 
 $/ = "\n\n";
 
@@ -109,44 +83,11 @@ while (<INPUT>) {
 		next;
 	}
 
-	if (!$errors{"$unit\0$loc"}) {
-		my $dup_id = find_dup $dbh, $unit, $loc;
-		if (defined $dup_id) {
-			push @errors_rel, $dup_id;
-		} else {
-			push @errors, [ $unit, $loc ];
-		}
-		$errors{"$unit\0$loc"} = 1;
-	}
+	$hlp->error_add($unit, $loc, 0, undef);
 }
 
 close INPUT;
 
-my $data = $dbh->prepare("INSERT INTO error_full(user, error_type, project, " .
-		"project_version, loc_file, loc_line, marking) " .
-		"VALUES (?, ?, ?, ?, ?, ?, ?)") ||
-		die "cannot prepare INSERT: " . DBI::errstr;
+$hlp->error_push($user_id);
 
-foreach (@errors) {
-	my $unit = $$_[0];
-	my $loc = $$_[1];
-	print "$unit $loc\n";
-	$data->execute($user_id, $error_type_id, $proj_id, $dest_proj_ver,
-			$unit, $loc, 0) ||
-		die "cannot INSERT: $dbh->errstr";
-	my $error_id = $dbh->last_insert_id(undef, undef, undef, undef);
-	push @errors_rel, $error_id;
-}
-
-$data = $dbh->prepare("INSERT INTO error_tool_rel(tool_id, error_id) " .
-		"VALUES (?, ?)") ||
-		die "cannot prepare INSERT: $dbh->errstr";
-
-foreach (@errors_rel) {
-	$data->execute($tool_id, $_) ||
-		die "cannot INSERT: $dbh->errstr";
-}
-
-$dbh->commit;
-
-0;
+1;
