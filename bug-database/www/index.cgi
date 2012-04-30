@@ -24,9 +24,12 @@ my $data;
 
 print $cg->h1('ClabureDB'), "\n";
 
-print $cg->p(qq(This is a database of known bugs and false positives in real ) .
-		qq(software projects. So far, we support only the <b>Linux ) .
-		qq(Kernel 2.6.28</b> and selected kinds of bugs. The main ) .
+print $cg->p(qq|This is a database of known bugs and false positives in real | .
+		qq|software projects. So far, we support only the <b>Linux | .
+		qq|Kernel 2.6.28</b> (| .
+		$cg->a({href => 'kernel-vanilla-2.6.28-167.fc16.src.rpm'},
+			'binary package') .
+		qq|) and selected kinds of bugs. The main | .
 		qq(purpose of the database is to support research and ) .
 		qq(development in the area of bug-finding techniques and ) .
 		qq(tools by providing data for their automatic evaluation.)),
@@ -35,13 +38,22 @@ print $cg->p(qq(This is a database of known bugs and false positives in real ) .
 		qq(support more software projects and more kinds of bug ) .
 		qq(later. This web interface of the database is also an ) .
 		qq(interim one.)), "\n",
-      $cg->p(qq(If you have any questions or suggestions, please feel free ) .
+      $cg->p(qq|There is also a page with | .
+		$cg->a({href => 'doc.html'}, 'documentation') .
+		qq|. If you have any | .
+		qq|further questions or suggestions, please feel free | .
 		qq(to ) . $cg->a({href => 'mailto:claburedb@fi.muni.cz'},
 					qq(contact us)) .
 		qq(.)), "\n",
-      $cg->p({style => 'margin-left: 2em;'}, "The ClabureDB Team"), "\n";
+      $cg->p({style => 'margin-left: 2em; margin-bottom: 5ex;'},
+		      "The ClabureDB Team"), "\n";
 
 print $cg->h2('Errors in the Database'), "\n";
+
+print $cg->start_form, $cg->p($cg->b("Database: ") .
+      $cg->popup_menu('db', ['Linux kernel 2.6.28'])),
+      $cg->endform, "\n";
+
 $data = $dbh->prepare("SELECT error_type.*, count(error.id) cid, " .
 	"(SELECT count(error.id) FROM error WHERE error.marking < 0 AND " .
 		"error.error_type == error_type.id) cfp, " .
