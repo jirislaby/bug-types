@@ -22,13 +22,17 @@ my $dbh = DBI->connect("dbi:SQLite:dbname=database.db","","") ||
 	die "connect to db error: " . DBI::errstr;
 my $data;
 
-print $cg->h1('ClabureDB'), "\n";
+print $cg->h1({style => 'background: #d0d0f0;'},
+		$cg->span({style => 'color:#001010;'}, 'Clabure') .
+		$cg->span({style => 'color:#e03040;'}, 'DB') .
+		qq|: Classified Bug-Reports Database|), "\n";
 
+print qq|<div style="background: #f0f0f0; padding: 0px 10px 0px 10px; margin-bottom: 2ex;">\n|;
 print $cg->p(qq|This is a database of known bugs and false positives in real | .
 		qq|software projects. So far, we support only the <b>Linux | .
 		qq|Kernel 2.6.28</b> (| .
 		$cg->a({href => 'kernel-vanilla-2.6.28-167.fc16.src.rpm'},
-			'binary package') .
+			'source RPM package') .
 		qq|) and selected kinds of bugs. The main | .
 		qq(purpose of the database is to support research and ) .
 		qq(development in the area of bug-finding techniques and ) .
@@ -44,13 +48,13 @@ print $cg->p(qq|This is a database of known bugs and false positives in real | .
 		qq|further questions or suggestions, please feel free | .
 		qq(to ) . $cg->a({href => 'mailto:claburedb@fi.muni.cz'},
 					qq(contact us)) .
-		qq(.)), "\n",
-      $cg->p({style => 'margin-left: 2em; margin-bottom: 5ex;'},
-		      "The ClabureDB Team"), "\n";
+		qq(.)), "\n";
+
+print qq|</div>\n|;
 
 print $cg->h2('Errors in the Database'), "\n";
 
-print $cg->start_form, $cg->p($cg->b("Database: ") .
+print $cg->start_form, $cg->p($cg->b("Project: ") .
       $cg->popup_menu('db', ['Linux kernel 2.6.28'])),
       $cg->endform, "\n";
 
