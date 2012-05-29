@@ -98,6 +98,8 @@ my $errors = $xp->findnodes("/database/errors/error");
 
 $hlp->error_init($tool_id, $error_type_id, $proj_id, $dest_proj_ver);
 
+my $undef_conv = 0;
+
 foreach my $error ($errors->get_nodelist) {
 	my $short_desc = $error->findvalue("short_desc");
 	next if ($short_desc ne $stanse_error_type);
@@ -116,13 +118,19 @@ foreach my $error ($errors->get_nodelist) {
 	my $line = $loc->findvalue("line");
 	if (defined $conv) {
 		my $entry = $conv_map{"$unit\x00$line"};
-		die "no entry for $unit:$line in conv map" if (!defined $entry);
+		if (!defined $entry) {
+			$undef_conv = 1;
+			print STDERR "no entry for $unit:$line in conv map\n";
+			next;
+		}
 		($unit, $line) = split /\x00/, $entry;
 	}
 	$hlp->error_add($unit, $line, $fp_bug);
 }
 
 $errors = undef;
+
+die "some conversion entries not found" if ($undef_conv);
 
 $hlp->error_push($user_id, $subtype);
 
