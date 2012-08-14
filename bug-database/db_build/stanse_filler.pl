@@ -14,7 +14,7 @@ my $user = "jirislaby";
 
 my $cmdline_err = "wrong commandline. should be:\n" .
 	"$0 db_error_type stanse_error_type dest.db src.xml " .
-	"[-c string to crop from paths] [-m conversion file] [-n note]";
+	"[-c string to crop from paths] [-m conversion file] [-n subtype]";
 
 die $cmdline_err if (scalar @ARGV < 4);
 
@@ -27,7 +27,7 @@ if (!getopts("c:fm:n:r", \%opts) || scalar @ARGV) {
 	die $cmdline_err;
 }
 
-my $note = $opts{'n'};
+my $subtype = $opts{'n'};
 my $crop = $opts{'c'};
 my $first_loc = $opts{'f'};
 my $conv = $opts{'m'};
@@ -65,7 +65,7 @@ print "$dest_proj: $proj_id\n";
 print "$error_type: $error_type_id\n";
 print "$user: $user_id\n";
 print "tool ID: $tool_id\n";
-print "note: $note\n" if (defined $note);
+print "subtype: $subtype\n" if (defined $subtype);
 
 my $croplen = defined($crop) ? length($crop) : 0;
 my $xp1 = XML::XPath->new();
@@ -124,6 +124,6 @@ foreach my $error ($errors->get_nodelist) {
 
 $errors = undef;
 
-$hlp->error_push($user_id, $note);
+$hlp->error_push($user_id, $subtype);
 
 1;

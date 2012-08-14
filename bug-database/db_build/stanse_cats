@@ -5,7 +5,7 @@ Double Resource Put@double put
 Double Unlock@double unlock
 Leaving function in locked state@leaving function in locked state@-r
 Memory Leak@memory leak - leaving function without releasing memory@-f
-NULL Pointer Dereference@dereferencing NULL pointer
+Invalid Pointer Dereference@dereferencing NULL pointer@-nNULL Pointer Dereference
+Invalid Pointer Dereference@dereferencing dangling pointer@-nUse After Free
 Resource Leak@leaving function with gotten variables@-f
 Resource Leak@leaving function with potentially gotten variables@-f
-Use After Free@dereferencing dangling pointer

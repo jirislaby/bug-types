@@ -94,7 +94,7 @@ $data = $dbh->prepare("INSERT INTO error_type(name, short_description, " .
 		die "cannot INSERT error_type: " . DBI::errstr;
 $data->execute("BUG/WARNING", "An unsatisfied assertion in the code", 617) ||
 		die "cannot INSERT error_type: " . DBI::errstr;
-$data->execute("div by zero", "The code tries to divide by zero", 369) ||
+$data->execute("Division by Zero", "The code tries to divide by zero", 369) ||
 		die "cannot INSERT error_type: " . DBI::errstr;
 $data->execute("Circular Locking Dependency", "There is a cycle in locking",
 		833) ||
@@ -108,11 +108,8 @@ $data->execute("Double Unlock", "Some lock is unlocked twice unintentionally " .
 $data->execute("Memory Leak", "There code omits to free some allocated memory",
 		401) ||
 		die "cannot INSERT error_type: " . DBI::errstr;
-$data->execute("NULL Pointer Dereference", "A pointer which is NULL " .
-		"is being dereferenced", 476) ||
-		die "cannot INSERT error_type: " . DBI::errstr;
-$data->execute("Use After Free", "Dereferencing a pointer that points to an " .
-		"already freed memory", 416) ||
+$data->execute("Invalid Pointer Dereference", "A pointer which is invalid " .
+		"is being dereferenced", 465) ||
 		die "cannot INSERT error_type: " . DBI::errstr;
 $data->execute("Double Free", "Freeing function is called twice on the same " .
 		"address", 415) ||

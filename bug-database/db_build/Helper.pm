@@ -150,7 +150,7 @@ sub error_add($$$$) {
 sub error_push($$$) {
 	my $self = shift;
 	my $user_id = shift;
-	my $note = shift;
+	my $subtype = shift;
 	my $dbh = $self->{dbh};
 	my $tool_id = $self->{err_tool_id};
 	my $error_type_id = $self->{err_error_type_id};
@@ -161,7 +161,7 @@ sub error_push($$$) {
 
 	my $data = $dbh->prepare("INSERT INTO error_full(user, error_type, " .
 		"project, project_version, loc_file, loc_line, marking, " .
-		"note) VALUES (?, ?, ?, ?, ?, ?, ?, ?)") ||
+		"error_subtype) VALUES (?, ?, ?, ?, ?, ?, ?, ?)") ||
 		die "cannot prepare INSERT: " . $dbh->errstr;
 
 	foreach (@errors) {
@@ -170,7 +170,7 @@ sub error_push($$$) {
 		my $marking = $$_[2];
 		print "$unit $loc\n";
 		$data->execute($user_id, $error_type_id, $proj_id,
-				$proj_ver, $unit, $loc, $marking, $note) ||
+				$proj_ver, $unit, $loc, $marking, $subtype) ||
 			die "cannot INSERT: " . $dbh->errstr;
 		my $error_id = $dbh->last_insert_id(undef, undef, undef, undef);
 		push @errors_rel, $error_id;
