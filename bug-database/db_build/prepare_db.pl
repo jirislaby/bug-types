@@ -30,6 +30,7 @@ $dbh->do("CREATE TABLE user(id INTEGER PRIMARY KEY, name VARCHAR(255), " .
 $dbh->do("CREATE TABLE error_type(id INTEGER PRIMARY KEY, " .
 		"name VARCHAR(255) UNIQUE, " .
 		"short_description VARCHAR(255) NOT NULL, " .
+		"long_description VARCHAR(255), " .
 		"CWE_error INTEGER)") ||
 		die "cannot CREATE err_type: " . DBI::errstr;
 $dbh->do("CREATE TABLE project(id INTEGER PRIMARY KEY, " .
