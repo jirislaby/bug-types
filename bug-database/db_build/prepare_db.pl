@@ -38,7 +38,7 @@ $dbh->do("CREATE TABLE project_info(id INTEGER PRIMARY KEY, " .
 		die "cannot CREATE project_info: " . DBI::errstr;
 $dbh->do("CREATE TABLE error(id INTEGER PRIMARY KEY, user INT NOT NULL, " .
 		"error_type INT NOT NULL, error_subtype STRING, " .
-		"project_info INT NOT NULL, project_version VARCHAR(32), " .
+		"project INT NOT NULL, project_version VARCHAR(32), " .
 		"note STRING, " .
 		"loc_file STRING NOT NULL, loc_file_hash STRING, " .
 		"loc_line INT NOT NULL, " .
@@ -47,11 +47,11 @@ $dbh->do("CREATE TABLE error(id INTEGER PRIMARY KEY, user INT NOT NULL, " .
 		"timestamp_lastmod DATETIME, " .
 		"timestamp_found DATETIME, " .
 		"marking INT NOT NULL, confirmation STRING, " .
-		"UNIQUE(error_type, error_subtype, project_info, " .
+		"UNIQUE(error_type, error_subtype, project, " .
 			"project_version, loc_file, loc_line)" .
 		"FOREIGN KEY(user) REFERENCES user(id), " .
 		"FOREIGN KEY(error_type) REFERENCES error_type(id), " .
-		"FOREIGN KEY(project_info) REFERENCES project_info(id))") ||
+		"FOREIGN KEY(project) REFERENCES project_info(id))") ||
 		die "cannot CREATE error: " . DBI::errstr;
 $dbh->do("CREATE TABLE error_trace(id INTEGER PRIMARY KEY, error_id INT, " .
 		"trace STRING NOT NULL, " .
@@ -131,7 +131,7 @@ $data->execute("Calling function from invalid context", "Some function is " .
 		die "cannot INSERT error_type: " . DBI::errstr;
 
 #$data = $dbh->prepare("INSERT INTO error_full(user, error_type, " .
-#		"error_subtype, project_info, project_version, note, " .
+#		"error_subtype, project, project_version, note, " .
 #		"loc_file, loc_line, url, marking) " .
 #		"VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)") ||
 #		die "cannot INSERT error: " . DBI::errstr;
