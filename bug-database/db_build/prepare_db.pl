@@ -33,12 +33,12 @@ $dbh->do("CREATE TABLE error_type(id INTEGER PRIMARY KEY, " .
 		"long_description VARCHAR(255), " .
 		"CWE_error INTEGER)") ||
 		die "cannot CREATE err_type: " . DBI::errstr;
-$dbh->do("CREATE TABLE project(id INTEGER PRIMARY KEY, " .
+$dbh->do("CREATE TABLE project_info(id INTEGER PRIMARY KEY, " .
 		"name VARCHAR(255) UNIQUE, url STRING, description STRING)") ||
-		die "cannot CREATE project: " . DBI::errstr;
+		die "cannot CREATE project_info: " . DBI::errstr;
 $dbh->do("CREATE TABLE error(id INTEGER PRIMARY KEY, user INT NOT NULL, " .
 		"error_type INT NOT NULL, error_subtype STRING, " .
-		"project INT NOT NULL, project_version VARCHAR(32), " .
+		"project_info INT NOT NULL, project_version VARCHAR(32), " .
 		"note STRING, " .
 		"loc_file STRING NOT NULL, loc_file_hash STRING, " .
 		"loc_line INT NOT NULL, " .
@@ -47,11 +47,11 @@ $dbh->do("CREATE TABLE error(id INTEGER PRIMARY KEY, user INT NOT NULL, " .
 		"timestamp_lastmod DATETIME, " .
 		"timestamp_found DATETIME, " .
 		"marking INT NOT NULL, confirmation STRING, " .
-		"UNIQUE(error_type, error_subtype, project, project_version, " .
-			"loc_file, loc_line)" .
+		"UNIQUE(error_type, error_subtype, project_info, " .
+			"project_version, loc_file, loc_line)" .
 		"FOREIGN KEY(user) REFERENCES user(id), " .
 		"FOREIGN KEY(error_type) REFERENCES error_type(id), " .
-		"FOREIGN KEY(project) REFERENCES project(id))") ||
+		"FOREIGN KEY(project_info) REFERENCES project_info(id))") ||
 		die "cannot CREATE error: " . DBI::errstr;
 $dbh->do("CREATE TABLE error_trace(id INTEGER PRIMARY KEY, error_id INT, " .
 		"trace STRING NOT NULL, " .
@@ -84,11 +84,11 @@ $data->execute("Stanse", "1", "http://stanse.fi.muni.cz/",
 		die "cannot INSERT tool: " . DBI::errstr;
 my $stanse_id = $dbh->last_insert_id(undef, undef, undef, undef);
 
-$data = $dbh->prepare("INSERT INTO project(name, url, description) " .
+$data = $dbh->prepare("INSERT INTO project_info(name, url, description) " .
 		"VALUES (?, ?, ?)") ||
-		die "cannot INSERT project: " . DBI::errstr;
+		die "cannot INSERT project_info: " . DBI::errstr;
 $data->execute("Linux Kernel", "http://www.kernel.org/", undef) ||
-		die "cannot INSERT project: " . DBI::errstr;
+		die "cannot INSERT project_info: " . DBI::errstr;
 
 $data = $dbh->prepare("INSERT INTO error_type(name, short_description, " .
 		"CWE_error) VALUES (?, ?, ?)") ||
@@ -130,9 +130,10 @@ $data->execute("Calling function from invalid context", "Some function is " .
 		"sections or interrupt handlers", undef) ||
 		die "cannot INSERT error_type: " . DBI::errstr;
 
-#$data = $dbh->prepare("INSERT INTO error_full(user, error_type, error_subtype, " .
-#		"project, project_version, note, loc_file, loc_line, url, " .
-#		"marking) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)") ||
+#$data = $dbh->prepare("INSERT INTO error_full(user, error_type, " .
+#		"error_subtype, project_info, project_version, note, " .
+#		"loc_file, loc_line, url, marking) " .
+#		"VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)") ||
 #		die "cannot INSERT error: " . DBI::errstr;
 #$data->execute(1, 1, undef, 1, undef, undef, "/abc", "100", undef, undef) ||
 #		die "cannot INSERT error: " . DBI::errstr;

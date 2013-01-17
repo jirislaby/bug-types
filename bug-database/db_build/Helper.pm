@@ -50,7 +50,7 @@ sub get_id($$$@) {
 sub get_prj($$) {
 	my $self = shift;
 	my $proj = shift;
-	return get_id($self->{dbh}, "project", "name = ?", ($proj));
+	return get_id($self->{dbh}, "project_info", "name = ?", ($proj));
 }
 
 sub get_error($$) {
