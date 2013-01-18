@@ -10,7 +10,7 @@ my $out = shift @ARGV;
 my $hlp = Helper->new($out) || die "cannot create helper";
 my $dbh = $hlp->get_dbh;
 
-my $data = $dbh->prepare("UPDATE error_full SET loc_file_hash = ? " .
+my $data = $dbh->prepare("UPDATE error SET loc_file_hash = ? " .
 		"WHERE project = ? AND project_version = ? AND loc_file = ? " .
 		"AND loc_file_hash IS NULL") ||
 		die "cannot UPDATE error: " . DBI::errstr;
