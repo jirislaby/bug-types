@@ -80,7 +80,7 @@ while (<INPUT>) {
 		next;
 	}
 
-	$hlp->error_add($unit, $loc, 0, undef);
+	$hlp->error_add($unit, $loc, 0);
 }
 
 close INPUT;
