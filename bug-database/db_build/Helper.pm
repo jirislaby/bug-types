@@ -101,7 +101,7 @@ sub find_dup($$$) {
 	while ($_ = $data->fetchrow_hashref) {
 		print "DUP: id=$$_{cid} unit=$unit line=$loc tool=$$_{tool}\n";
 		$dup_id = $$_{cid};
-		if ($tool_id == $$_{tool}) {
+		if (defined $tool_id && $tool_id == $$_{tool}) {
 			$same_tool = 1;
 		}
 	}
@@ -171,13 +171,16 @@ sub error_push($$$) {
 		push @errors_rel, $error_id;
 	}
 
-	$data = $dbh->prepare("INSERT INTO error_tool_rel(tool_id, error_id) " .
-			"VALUES (?, ?)") ||
-			die "cannot prepare INSERT: " . $dbh->errstr;
+	if (defined $tool_id) {
+		$data = $dbh->prepare("INSERT INTO " .
+				"error_tool_rel(tool_id, error_id) " .
+				"VALUES (?, ?)") ||
+				die "cannot prepare INSERT: " . $dbh->errstr;
 
-	foreach (@errors_rel) {
-		$data->execute($tool_id, $_) ||
-			die "cannot INSERT: " . $dbh->errstr;
+		foreach (@errors_rel) {
+			$data->execute($tool_id, $_) ||
+				die "cannot INSERT: " . $dbh->errstr;
+		}
 	}
 
 	$dbh->commit;
