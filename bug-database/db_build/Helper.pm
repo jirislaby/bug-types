@@ -78,14 +78,14 @@ sub get_tool($$$) {
 	return get_id($self->{dbh}, "tool", $where, @bind);
 }
 
-sub find_dup($$$$$$) {
+sub find_dup($$$) {
 	my $self = shift;
-	my $tool_id = shift;
-	my $error_type_id = shift;
-	my $proj_id = shift;
-	my $proj_ver = shift;
 	my $unit = shift;
 	my $loc = shift;
+	my $tool_id = $self->{err_tool_id};
+	my $error_type_id = $self->{err_error_type_id};
+	my $proj_id = $self->{err_proj_id};
+	my $proj_ver = $self->{err_proj_ver};
 	my $dbh = $self->{dbh};
 	my $data = $dbh->prepare("SELECT error.id cid, loc_file, loc_line, " .
 			"error_tool_rel.tool_id tool " .
@@ -125,17 +125,12 @@ sub error_add($$$$) {
 	my $unit = shift;
 	my $loc = shift;
 	my $marking = shift;
-	my $tool_id = $self->{err_tool_id};
-	my $error_type_id = $self->{err_error_type_id};
-	my $proj_id = $self->{err_proj_id};
-	my $proj_ver = $self->{err_proj_ver};
 	my $errors = $self->{errors};
 	my $errors_rel = $self->{errors_rel};
 	my $errors_dup = $self->{errors_dup};
 
 	if (!$$errors_dup{"$unit\0$loc"}) {
-		my ($dup_id, $same_tool) = $self->find_dup($tool_id,
-			$error_type_id, $proj_id, $proj_ver, $unit, $loc);
+		my ($dup_id, $same_tool) = $self->find_dup($unit, $loc);
 		if (defined $dup_id) {
 			if (!$same_tool) {
 				push $errors_rel, $dup_id;
