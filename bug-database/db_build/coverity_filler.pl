@@ -22,7 +22,6 @@ my $in = $ARGV[1];
 open(INPUT, "<", $in) || die "cannot open '$in' for reading";
 
 my $hlp = Helper->new($out) || die "helper failed to open db!";
-my $dbh = $hlp->get_dbh;
 
 my $proj_id = $hlp->get_prj($dest_proj) ||
 	die "cannot fetch project ID for '$dest_proj'";
@@ -37,8 +36,6 @@ print "$dest_proj: $proj_id\n";
 print "$error_type: $error_type_id\n";
 print "$user: $user_id\n";
 print "tool ID: $tool_id\n";
-
-my $state = 0;
 
 $hlp->error_init($tool_id, $error_type_id, $proj_id, "2.6.28");
 
