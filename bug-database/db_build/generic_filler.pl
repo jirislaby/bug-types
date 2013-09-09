@@ -59,12 +59,7 @@ print "$error_type: $error_type_id\n";
 print "$user: $user_id\n";
 print "tool ID: $tool_id\n" if (defined $tool_id);
 
-my $data = $dbh->prepare("INSERT INTO $table_name(user, error_type, project, " .
-		"project_version, loc_file, loc_line, marking) " .
-		"VALUES (?, ?, ?, ?, ?, ?, ?)") ||
-		die "cannot prepare INSERT: " . DBI::errstr;
-
-my @errors_rel = ();
+$hlp->error_init($tool_id, $error_type_id, $proj_id, "2.6.28");
 
 while (<>) {
 	chomp;
@@ -73,24 +68,9 @@ while (<>) {
 	my $loc = $2;
 	my $marking = $3;
 	print "$unit $loc\n";
-	$data->execute($user_id, $error_type_id, $proj_id, $dest_proj_ver,
-			$unit, $loc, $marking) ||
-		die "cannot INSERT: $dbh->errstr";
-	my $error_id = $dbh->last_insert_id(undef, undef, undef, undef);
-	push @errors_rel, $error_id;
+	$hlp->error_add($unit, $loc, $marking);
 }
 
-if (defined $tool_id) {
-	$data = $dbh->prepare("INSERT INTO error_tool_rel(tool_id, error_id) " .
-			"VALUES (?, ?)") ||
-			die "cannot prepare INSERT: " . $dbh->errstr;
-
-	foreach (@errors_rel) {
-		$data->execute($tool_id, $_) ||
-			die "cannot INSERT: " . $dbh->errstr;
-	}
-}
-
-$dbh->commit;
+$hlp->error_push($user_id);
 
 1;
