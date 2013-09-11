@@ -88,21 +88,28 @@ sub find_dup($$$) {
 	my $proj_ver = $self->{err_proj_ver};
 	my $dbh = $self->{dbh};
 	my $data = $dbh->prepare("SELECT error.id cid, loc_file, loc_line, " .
-			"error_tool_rel.tool_id tool " .
-			"FROM error, error_tool_rel " .
+			"error_tool_rel.tool_id tool_id, tool.name tool " .
+			"FROM error, error_tool_rel, tool " .
 			"WHERE error.id == error_tool_rel.error_id AND " .
+			"error_tool_rel.tool_id == tool.id AND " .
 			"error_type = ? AND " .
 			"project = ? AND project_version = ? AND " .
-			"loc_file = ? AND loc_line = ?") ||
+			"loc_file = ? AND loc_line BETWEEN ? AND ?") ||
 		die "cannot prepare SELECT: $dbh->errstr";
-	$data->execute($error_type_id, $proj_id, $proj_ver, $unit, $loc);
+	$data->execute($error_type_id, $proj_id, $proj_ver, $unit, $loc - 5,
+			$loc + 5);
 	my $dup_id = undef;
 	my $same_tool = 0;
 	while ($_ = $data->fetchrow_hashref) {
-		print "DUP: id=$$_{cid} unit=$unit line=$loc tool=$$_{tool}\n";
-		$dup_id = $$_{cid};
-		if (defined $tool_id && $tool_id == $$_{tool}) {
-			$same_tool = 1;
+		if ($loc == $$_{loc_line}) {
+			print "DUP: id=$$_{cid} unit=$unit line=$loc tool=$$_{tool}\n";
+			$dup_id = $$_{cid};
+			if (defined $tool_id && $tool_id == $$_{tool_id}) {
+				$same_tool = 1;
+			}
+		} else {
+			print "DUP (maybe): id=$$_{cid} unit=$unit ",
+			      "dbline=$$_{loc_line} line=$loc tool=$$_{tool}\n";
 		}
 	}
 	return ($dup_id, $same_tool);
