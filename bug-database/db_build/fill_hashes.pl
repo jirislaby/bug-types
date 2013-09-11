@@ -17,7 +17,7 @@ my $data = $dbh->prepare("UPDATE error SET loc_file_hash = ? " .
 
 while (<>) {
 	chomp;
-	die "unknown input: $_" unless (/^(.*);([0-9a-f]{40})$/);
+	die "unknown input: $_" unless (/^(.+)\x00([0-9a-f]{40})$/);
 	my ($file, $hash) = ($1, $2);
 	$data->execute($hash, 1, "2.6.28", $file) ||
 			die "cannot UPDATE error: " . DBI::errstr;
