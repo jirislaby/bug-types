@@ -9,8 +9,10 @@ my %opts;
 my $usage = "Usage: $0 <parameters>\n" .
 	"\tParameters are:\n" .
 	"\t-d database.db    Path to database\n" .
-	"\t-D table_name     Name of the errors table, defaults to 'error'\n" .
+	"\t[-D table_name]   Name of the errors table, defaults to 'error'\n" .
 	"\t-e error_type     Name of the error type in the error_type table\n" .
+	"\t[-E err_subtype]  Error subtype in the error table (defaults to empty)\n" .
+	"\t[-n]              Dry run (no insertions)'\n" .
 	"\t[-p proj_name]    Defaults to 'Linux kernel'\n" .
 	"\t[-P proj_ver]     Defaults to '2.6.28'\n" .
 	"\t[-t tool_name]    Unspecified means no tool\n" .
@@ -22,17 +24,19 @@ my $usage = "Usage: $0 <parameters>\n" .
 	"\t\t 0 ... unclassified\n" .
 	"\t\t 1 ... real error\n";
 
-if (!getopts("a:d:e:p:P:t:T:", \%opts)) {
+if (!getopts("d:D:e:E:np:P:t:T:", \%opts)) {
 	die $usage;
 }
 
 my $database = $opts{'d'};
 my $table_name = $opts{'D'} ? $opts{'D'} : "error";
 my $error_type = $opts{'e'};
-my $tool_name = $opts{'t'};
-my $tool_ver = $opts{'T'};
+my $error_subtype = $opts{'E'};
+my $dry_run = $opts{'n'};
 my $dest_proj = $opts{'p'} ? $opts{'p'} : "Linux Kernel";
 my $dest_proj_ver = $opts{'P'} ? $opts{'P'} : "2.6.28";
+my $tool_name = $opts{'t'};
+my $tool_ver = $opts{'T'};
 my $user = "jirislaby";
 
 if (!defined $database || !defined $error_type) {
@@ -71,6 +75,8 @@ while (<>) {
 	$hlp->error_add($unit, $loc, $marking);
 }
 
-$hlp->error_push($user_id);
+if (!defined $dry_run) {
+	$hlp->error_push($user_id, $error_subtype);
+}
 
 1;
